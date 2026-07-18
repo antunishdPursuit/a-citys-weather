@@ -3,27 +3,29 @@ describe("A City's Weather", () => {
     cy.visit("/");
   });
 
-  it("starts with an accessible search and an empty state", () => {
-    cy.get("h1").should("have.text", "A City's Weather");
-    cy.get("label[for='city']").should("have.text", "City");
-    cy.get("#status").should("contain.text", "Choose a city");
-    cy.get("#empty-history").should("be.visible");
+  it("preserves the original weather search interface", () => {
+    cy.get("#weatherCity").should("have.attr", "aria-label", "Weather search");
+    cy.get("#city").should("have.attr", "placeholder", "Enter a City");
+    cy.get("#weather_button").should("have.text", "Get Weather");
+    cy.get(".cloud").should("have.length", 6);
+    cy.get("#removed").should("contain.text", "No previous searches");
   });
 
-  it("renders current conditions and three forecast cards", () => {
+  it("renders the original panels and weather artwork", () => {
     cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
       fixture: "melbourne.json",
     }).as("melbourneWeather");
 
     cy.get("#city").type("melbourne");
-    cy.get("#weather-button").click();
+    cy.get("#weather_button").click();
     cy.wait("@melbourneWeather");
 
-    cy.get("#result-heading").should("have.text", "Melbourne");
-    cy.get("#location-detail").should("contain.text", "Victoria").and("contain.text", "Australia");
-    cy.get("#condition-detail").should("contain.text", "47 °F");
-    cy.get(".forecast-card").should("have.length", 3);
-    cy.get("#search-history").should("contain.text", "Melbourne");
+    cy.get("#cityName").should("have.text", "Melbourne");
+    cy.get("#cityInfo").should("contain.text", "Victoria").and("contain.text", "Australia");
+    cy.get("#cityInfo").should("contain.text", "47 °F");
+    cy.get(".tempertures").should("have.length", 3).and("be.visible");
+    cy.get("#list").should("contain.text", "Melbourne");
+    cy.get(".cloud").should("have.css", "background-image").and("include", "partly-cloudy.png");
   });
 
   it("toggles units and reuses cached search history", () => {
@@ -33,15 +35,15 @@ describe("A City's Weather", () => {
 
     cy.get("#city").type("Melbourne").type("{enter}");
     cy.wait("@melbourneWeather");
-    cy.get("#unit-toggle").click();
+    cy.get(".degreeCToF").click();
 
-    cy.get("#condition-detail").should("contain.text", "8 °C");
-    cy.get(".forecast-card").first().should("contain.text", "12 °C");
-    cy.get(".history-button").click();
-    cy.get("#result-heading").should("have.text", "Melbourne");
+    cy.get("#cityInfo").should("contain.text", "8 °C");
+    cy.get("#today").should("contain.text", "12 °C");
+    cy.get(".previousCity").click();
+    cy.get("#cityName").should("have.text", "Melbourne");
   });
 
-  it("shows a useful message when the weather request fails", () => {
+  it("shows the original invalid-city state on failure", () => {
     cy.intercept("GET", "https://wttr.in/Nowhere?format=j1", {
       statusCode: 500,
       body: {},
@@ -50,9 +52,8 @@ describe("A City's Weather", () => {
     cy.get("#city").type("Nowhere").type("{enter}");
     cy.wait("@failedWeather");
 
-    cy.get("#status")
-      .should("be.visible")
-      .and("contain.text", "couldn't load weather for Nowhere");
-    cy.get("#weather-button").should("not.be.disabled");
+    cy.get("#cityName").should("have.text", "City Invalid");
+    cy.get("#weather_button").should("not.be.disabled").and("have.text", "Get Weather");
+    cy.get("#temps").should("not.be.visible");
   });
 });
