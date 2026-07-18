@@ -396,8 +396,34 @@ section h4 {
 
 /* ------------------------ Media Queries ------------------------ */
 @media (max-width: 768px) {
+    body, html {
+        overflow-x: hidden;
+    }
+
+    .mainPage {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        width: 100%;
+        padding-bottom: 20px;
+    }
+
+    .mainPage > aside:first-child {
+        display: none;
+    }
+
+    .mainBoxes,
+    .mainPage > aside:last-child {
+        min-width: 0;
+        width: 100%;
+    }
+
+    section {
+        box-sizing: border-box;
+    }
+
     #temps {
         gap: 10px;
+        box-sizing: border-box;
     }
 
     .tempertures {
@@ -413,9 +439,39 @@ section h4 {
     .avg, .max, .min {
         font-size: 0.85em;
     }
+
+    .weather-footer {
+        position: static;
+        width: calc(100% + 20px);
+        margin-left: -10px;
+    }
 }
 
 @media (max-width: 480px) {
+    header {
+        box-sizing: border-box;
+    }
+
+    #weatherCity {
+        flex-direction: column;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #city {
+        width: min(250px, 100%);
+        box-sizing: border-box;
+    }
+
+    #weather_button {
+        margin-left: 0;
+    }
+
+    #cityInfo {
+        width: calc(100% - 20px);
+        box-sizing: border-box;
+    }
+
     #temps {
         gap: 8px;
         padding: 5px;
