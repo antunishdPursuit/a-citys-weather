@@ -64,7 +64,7 @@ header {
 }
 
 /* Header Button styling */
-.degreeCToF, #weather_button {
+.degreeCToF, #weather_button, #motion-toggle {
     position: relative;
     display: inline-block;
     cursor: pointer;
@@ -82,10 +82,26 @@ header {
 }
 
 
-.degreeCToF:hover, #weather_button:hover {
+.degreeCToF:hover, #weather_button:hover, #motion-toggle:hover {
     transform: scale(1.05);
     background: linear-gradient(to bottom, #075985, #064569);
     box-shadow: 0 12px 20px rgba(0, 150, 255, 0.4);
+}
+
+#motion-toggle {
+    color: #075985;
+    background: linear-gradient(to bottom, #f0f9ff, #b3e5fc);
+}
+
+#motion-toggle:hover {
+    color: white;
+}
+
+#motion-toggle:disabled {
+    cursor: not-allowed;
+    color: #334155;
+    opacity: 0.8;
+    transform: none;
 }
 
 #weather_button::before {
@@ -176,6 +192,27 @@ header {
     0% { transform: translate3d(-10vw, 8px, 0) rotate(-4deg); }
     50% { transform: translate3d(70vw, -10px, 0) rotate(3deg); }
     100% { transform: translate3d(130vw, 6px, 0) rotate(-2deg); }
+}
+
+body.motion-paused .cloud,
+body.motion-paused .weather-emoji {
+    animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cloud,
+    .weather-emoji {
+        animation: none;
+    }
+
+    .tempertures,
+    .degreeCToF,
+    #weather_button,
+    #motion-toggle,
+    #list li,
+    .footer-link {
+        transition: none;
+    }
 }
 
 

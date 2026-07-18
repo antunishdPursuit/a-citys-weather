@@ -2,6 +2,7 @@ const mainPage = document.querySelector(".mainPage");
 const form = document.querySelector("#weatherCity");
 const cityInput = document.querySelector("#city");
 const submitButton = document.querySelector("#weather_button");
+const motionToggle = document.querySelector("#motion-toggle");
 const cityInfo = document.querySelector("#cityInfo");
 const temperatures = document.querySelector("#temps");
 const emptyHistory = document.querySelector("#removed");
@@ -20,6 +21,8 @@ const state = {
   weatherByCity: new Map(),
   weatherIcons: null,
 };
+
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function normalizeCity(value) {
   return value
@@ -48,6 +51,24 @@ function setLoading(isLoading) {
   submitButton.disabled = isLoading;
   submitButton.textContent = isLoading ? "Loading..." : "Get Weather";
   form.setAttribute("aria-busy", String(isLoading));
+}
+
+function setMotionPaused(isPaused) {
+  document.body.classList.toggle("motion-paused", isPaused);
+  motionToggle.setAttribute("aria-pressed", String(isPaused));
+  motionToggle.textContent = isPaused ? "Play motion" : "Pause motion";
+}
+
+function applyMotionPreference(prefersReducedMotion) {
+  if (prefersReducedMotion) {
+    setMotionPaused(true);
+    motionToggle.textContent = "Motion reduced";
+    motionToggle.disabled = true;
+    return;
+  }
+
+  motionToggle.disabled = false;
+  setMotionPaused(false);
 }
 
 function showMessage(message) {
@@ -320,3 +341,10 @@ searchHistory.addEventListener("click", (event) => {
   const weather = state.weatherByCity.get(link.dataset.city);
   if (weather) renderWeather(link.dataset.city, weather);
 });
+
+motionToggle.addEventListener("click", () => {
+  setMotionPaused(!document.body.classList.contains("motion-paused"));
+});
+
+reducedMotion.addEventListener("change", (event) => applyMotionPreference(event.matches));
+applyMotionPreference(reducedMotion.matches);
