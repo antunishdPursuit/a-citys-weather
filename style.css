@@ -7,6 +7,17 @@ body, html {
 
 }
 
+body {
+    position: relative;
+    min-height: 100vh;
+}
+
+header,
+.mainPage,
+.weather-footer {
+    z-index: 1;
+}
+
 /* ------------------------ Header ------------------------ */
 header {
     display: grid;
@@ -108,13 +119,14 @@ header {
  /* ------------------------ Cloud styling ------------------------ */
 /* Cloud container styling */
 .cloud-container {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     overflow: hidden;
     pointer-events: none;
+    z-index: 0;
 }
 
 /* Basic cloud styling with background image */
@@ -128,20 +140,42 @@ header {
     overflow: visible;
     opacity: 0.8;
     animation: float linear infinite;
+    will-change: transform;
 }
 
 /* Cloud variations */
-.cloud:nth-child(1) { width: 250px; height: 130px; top: 30%; left: -350px; animation-duration: 50s; }
-.cloud:nth-child(2) { width: 250px; height: 130px; top: 30%; left: -350px; animation-duration: 50s; }
-.cloud:nth-child(3) { width: 200px; height: 110px; top: 60%; left: 0px; animation-duration: 60s; }
-.cloud:nth-child(4) { width: 220px; height: 120px; top: 75%; left: -400px; animation-duration: 70s; }
-.cloud:nth-child(5) { width: 280px; height: 140px; top: 20%; left: -300px; animation-duration: 65s; }
-.cloud:nth-child(6) { width: 320px; height: 160px; top: 50%; left: -450px; animation-duration: 55s; }
+.cloud:nth-child(1) { width: 250px; height: 130px; top: 18%; left: -350px; animation-duration: 28s; animation-delay: -8s; }
+.cloud:nth-child(2) { width: 180px; height: 95px; top: 34%; left: -300px; animation-duration: 34s; animation-delay: -24s; }
+.cloud:nth-child(3) { width: 200px; height: 110px; top: 58%; left: -250px; animation-duration: 38s; animation-delay: -14s; }
+.cloud:nth-child(4) { width: 220px; height: 120px; top: 76%; left: -400px; animation-duration: 44s; animation-delay: -34s; }
+.cloud:nth-child(5) { width: 280px; height: 140px; top: 8%; left: -300px; animation-duration: 50s; animation-delay: -42s; }
+.cloud:nth-child(6) { width: 320px; height: 160px; top: 46%; left: -450px; animation-duration: 58s; animation-delay: -20s; }
+
+.weather-emoji {
+    position: absolute;
+    left: -15vw;
+    opacity: 0.62;
+    filter: drop-shadow(0 6px 10px rgba(7, 89, 133, 0.18));
+    animation: weather-drift 32s linear infinite;
+    will-change: transform;
+}
+
+.weather-emoji:nth-of-type(1) { top: 14%; font-size: 2.6rem; animation-duration: 22s; animation-delay: -12s; }
+.weather-emoji:nth-of-type(2) { top: 32%; font-size: 1.9rem; animation-duration: 27s; animation-delay: -23s; }
+.weather-emoji:nth-of-type(3) { top: 52%; font-size: 3rem; animation-duration: 31s; animation-delay: -6s; }
+.weather-emoji:nth-of-type(4) { top: 70%; font-size: 2.1rem; animation-duration: 35s; animation-delay: -29s; }
+.weather-emoji:nth-of-type(5) { top: 84%; font-size: 2.5rem; animation-duration: 39s; animation-delay: -18s; }
 
 /* Floating animation */
 @keyframes float {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(150vw); }
+    0% { transform: translate3d(-100%, 0, 0); }
+    100% { transform: translate3d(150vw, 0, 0); }
+}
+
+@keyframes weather-drift {
+    0% { transform: translate3d(-10vw, 8px, 0) rotate(-4deg); }
+    50% { transform: translate3d(70vw, -10px, 0) rotate(3deg); }
+    100% { transform: translate3d(130vw, 6px, 0) rotate(-2deg); }
 }
 
 
@@ -527,6 +561,13 @@ section h4 {
     #cityInfo .current-summary::before,
     #cityInfo .current-condition {
         grid-column: 1;
+    }
+
+    .cloud:nth-child(5),
+    .cloud:nth-child(6),
+    .weather-emoji:nth-of-type(4),
+    .weather-emoji:nth-of-type(5) {
+        display: none;
     }
 
     #temps {

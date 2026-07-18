@@ -6,6 +6,7 @@ const cityInfo = document.querySelector("#cityInfo");
 const temperatures = document.querySelector("#temps");
 const emptyHistory = document.querySelector("#removed");
 const searchHistory = document.querySelector("#list");
+const cloudContainer = document.querySelector(".cloud-container");
 const clouds = document.querySelectorAll(".cloud");
 const days = document.querySelectorAll(".days");
 const averages = document.querySelectorAll(".avg");
@@ -179,7 +180,35 @@ function createHeart() {
   return svg;
 }
 
-async function updateWeatherBackground(weatherCode, city) {
+function weatherEmojis(description) {
+  const condition = description.toLowerCase();
+  if (condition.includes("thunder")) return ["⛈️", "⚡", "🌧️", "⚡", "☁️"];
+  if (condition.includes("snow") || condition.includes("blizzard")) return ["❄️", "🌨️", "❄️", "☁️", "❄️"];
+  if (condition.includes("ice") || condition.includes("freez") || condition.includes("sleet")) {
+    return ["🧊", "🌨️", "❄️", "🧊", "☁️"];
+  }
+  if (condition.includes("rain") || condition.includes("drizzle") || condition.includes("shower")) {
+    return ["🌧️", "💧", "☁️", "💧", "🌦️"];
+  }
+  if (condition.includes("fog") || condition.includes("mist")) return ["🌫️", "☁️", "🌫️", "☁️", "🌫️"];
+  if (condition.includes("cloud") || condition.includes("overcast")) return ["🌤️", "☁️", "🌥️", "☁️", "🌤️"];
+  return ["☀️", "✨", "🌤️", "✨", "☀️"];
+}
+
+function renderWeatherEmojis(description) {
+  cloudContainer.querySelectorAll(".weather-emoji").forEach((emoji) => emoji.remove());
+  weatherEmojis(description).forEach((symbol, index) => {
+    const emoji = document.createElement("span");
+    emoji.className = "weather-emoji";
+    emoji.setAttribute("aria-hidden", "true");
+    emoji.style.setProperty("--weather-layer", String(index + 1));
+    emoji.textContent = symbol;
+    cloudContainer.append(emoji);
+  });
+}
+
+async function updateWeatherBackground(weatherCode, city, description) {
+  renderWeatherEmojis(description);
   try {
     if (!state.weatherIcons) {
       const response = await fetch("icons.json");
@@ -187,9 +216,10 @@ async function updateWeatherBackground(weatherCode, city) {
       state.weatherIcons = await response.json();
     }
 
-    clouds.forEach((cloud) => {
+    clouds.forEach((cloud, index) => {
       cloud.querySelectorAll(".surprise-heart").forEach((heart) => heart.remove());
-      cloud.style.backgroundImage = state.weatherIcons[weatherCode] ?? "url('assets/cloud.webp')";
+      const conditionArtwork = state.weatherIcons[weatherCode] ?? "url('assets/cloud.webp')";
+      cloud.style.backgroundImage = index % 3 === 2 ? "url('assets/cloud.webp')" : conditionArtwork;
       if (city === "Ho Chi Minh City") cloud.append(createHeart());
     });
   } catch (error) {
@@ -236,7 +266,7 @@ function renderWeather(city, weather) {
   renderForecast(weatherDays);
   renderHistory();
   temperatures.style.display = "flex";
-  void updateWeatherBackground(current.weatherCode, city);
+  void updateWeatherBackground(current.weatherCode, city, current.weatherDesc?.[0]?.value ?? "clear");
 }
 
 async function fetchWeather(city) {
