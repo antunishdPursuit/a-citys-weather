@@ -15,7 +15,7 @@ header {
     grid-template-columns: auto;
     padding: 5px;
     margin-bottom: 10px;
-    border: 1px solid rgb(240, 9, 28);
+    border: 1px solid #0d75bd;
     background-color: rgb(57, 193, 238);
 }
 
@@ -64,7 +64,7 @@ header {
     font-size: 1em;
     font-weight: bold;
     color: white;
-    background: linear-gradient(to bottom, #87ceeb, #1e90ff);
+    background: linear-gradient(to bottom, #0d75bd, #075985);
     box-shadow: 0 8px 15px rgba(0, 150, 255, 0.3);
     transition: all 0.3s ease;
     overflow: hidden;
@@ -73,7 +73,7 @@ header {
 
 .degreeCToF:hover, #weather_button:hover {
     transform: scale(1.05);
-    background: linear-gradient(to bottom, #1e90ff, #4682b4);
+    background: linear-gradient(to bottom, #075985, #064569);
     box-shadow: 0 12px 20px rgba(0, 150, 255, 0.4);
 }
 
@@ -180,7 +180,7 @@ header {
     justify-content: center;
     margin-top: 0px;
     margin-bottom: 10px;
-    color: #1e90ff;
+    color: #075985;
     font-size: 1.8em;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -201,7 +201,7 @@ header {
 }
 
 #cityInfo strong {
-    color: #1e90ff;
+    color: #075985;
     margin-right: 5px;
 }
 
@@ -234,7 +234,7 @@ header {
     width: 100%;
     padding: 15px;
     max-width: 200px;
-    color: white;
+    color: #17324d;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
     background: linear-gradient(to bottom, #87ceeb, #1e90ff);
@@ -255,7 +255,7 @@ header {
     font-size: 1.2em;
     font-weight: bold;
     margin-bottom: 8px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: none;
 }
 
 .avg, .max, .min {
@@ -294,7 +294,7 @@ section {
 
 section h4 {
     margin-bottom: 10px;
-    color: #1e90ff;
+    color: #075985;
     font-size: 1.2em;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -334,7 +334,7 @@ section h4 {
 .previousCity {
     display: inline-flex;
     align-items: center;
-    color: #1e90ff;
+    color: #075985;
     font-weight: bold;
     text-decoration: none;
 }
@@ -356,8 +356,8 @@ section h4 {
     padding: 5px 0;
     color: white;
     box-sizing: border-box;
-    border-top: 2px solid #1e90ff;
-    background: linear-gradient(to right, #87ceeb, #1e90ff);
+    border-top: 2px solid #075985;
+    background: linear-gradient(to right, #0d75bd, #075985);
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
