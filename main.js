@@ -77,31 +77,40 @@ function renderCurrentConditions(city, area, current) {
   heading.append(headingText);
 
   const areaParagraph = createLabeledParagraph("Area:", area.areaName?.[0]?.value ?? "Unknown");
+  areaParagraph.className = "location-line";
   const regionParagraph = createLabeledParagraph(
     area.region?.[0]?.value ? "Region:" : "",
     area.region?.[0]?.value ?? "",
   );
+  regionParagraph.className = "location-line";
   const countryParagraph = createLabeledParagraph("", area.country?.[0]?.value ?? "");
+  countryParagraph.className = "location-line";
 
   const conditionParagraph = document.createElement("p");
+  conditionParagraph.className = "current-summary";
   const description = document.createElement("strong");
+  description.className = "current-condition";
   description.style.margin = "0";
   description.textContent = current.weatherDesc?.[0]?.value ?? "Conditions unavailable";
+
+  const temperatureGroup = document.createElement("span");
+  temperatureGroup.className = "current-reading";
   const feelsLike = document.createElement("strong");
+  feelsLike.className = "current-temperature";
   feelsLike.textContent = temperature(current[`FeelsLike${state.unit}`]);
+
+  const timeGroup = document.createElement("span");
+  timeGroup.className = "observed-reading";
   const observedAt = document.createElement("strong");
+  observedAt.className = "observed-time";
   observedAt.textContent = new Date().toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
   });
-  conditionParagraph.append(
-    description,
-    document.createTextNode(" Feels like "),
-    feelsLike,
-    document.createTextNode(" at "),
-    observedAt,
-  );
+  temperatureGroup.append(document.createTextNode("Feels like "), feelsLike);
+  timeGroup.append(document.createTextNode("Observed "), observedAt);
+  conditionParagraph.append(description, temperatureGroup, timeGroup);
 
   const unitButton = document.createElement("button");
   unitButton.type = "button";

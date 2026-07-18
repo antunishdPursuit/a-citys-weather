@@ -164,7 +164,7 @@ header {
     overflow: hidden;
     margin: 20px auto;
     padding: 20px;
-    max-width: 320px;
+    max-width: 420px;
     color: #333;
     text-align: center;
     border: 2px solid teal;
@@ -213,6 +213,54 @@ header {
 #cityInfo p:nth-child(2)::before { content: '📍'; }
 #cityInfo p:nth-child(4)::before { content: '🌎'; }
 #cityInfo p:nth-child(5)::before { content: '🌡️'; }
+
+#cityInfo .location-line {
+    line-height: 1.4;
+}
+
+#cityInfo .current-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(7, 89, 133, 0.25);
+}
+
+#cityInfo .current-summary::before,
+#cityInfo .current-condition {
+    grid-column: 1 / -1;
+}
+
+#cityInfo .current-summary::before {
+    margin: 0 auto;
+}
+
+#cityInfo .current-condition {
+    font-size: 1.15em;
+}
+
+#cityInfo .current-reading,
+#cityInfo .observed-reading {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+}
+
+#cityInfo .current-temperature {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+#cityInfo .observed-time {
+    margin: 0;
+    color: #334155;
+}
+
+#cityInfo .degreeCToF {
+    margin-top: 10px;
+}
 
 /* ------------------------ Temperature styling ------------------------ */
 #temps {
@@ -470,6 +518,15 @@ section h4 {
     #cityInfo {
         width: calc(100% - 20px);
         box-sizing: border-box;
+    }
+
+    #cityInfo .current-summary {
+        grid-template-columns: 1fr;
+    }
+
+    #cityInfo .current-summary::before,
+    #cityInfo .current-condition {
+        grid-column: 1;
     }
 
     #temps {
