@@ -1,18 +1,22 @@
 {
-  "name": "8-0-weather-app-project",
+  "name": "city-weather-app",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "An accessible three-day weather search built with vanilla JavaScript.",
   "scripts": {
-    "start": "live-server --port=5001 .",
-    "test": "npx cypress open"
+    "dev": "vite --host 127.0.0.1",
+    "start": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "start-test dev http://127.0.0.1:5173 test:e2e",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "cypress": "9.7.0",
-    "cypress-watch-and-reload": "^1.10.3",
-    "live-server": "^1.2.2"
+    "cypress": "^15.18.1",
+    "start-server-and-test": "^3.0.11",
+    "vite": "^8.1.5"
   }
 }
