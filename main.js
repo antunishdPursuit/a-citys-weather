@@ -1,20 +1,23 @@
-const form = document.querySelector("#weather-form");
+const mainPage = document.querySelector(".mainPage");
+const form = document.querySelector("#weatherCity");
 const cityInput = document.querySelector("#city");
-const submitButton = document.querySelector("#weather-button");
-const status = document.querySelector("#status");
-const currentWeather = document.querySelector("#current-weather");
-const resultHeading = document.querySelector("#result-heading");
-const locationDetail = document.querySelector("#location-detail");
-const conditionDetail = document.querySelector("#condition-detail");
-const unitToggle = document.querySelector("#unit-toggle");
-const forecast = document.querySelector("#forecast");
-const searchHistory = document.querySelector("#search-history");
-const emptyHistory = document.querySelector("#empty-history");
+const submitButton = document.querySelector("#weather_button");
+const cityInfo = document.querySelector("#cityInfo");
+const temperatures = document.querySelector("#temps");
+const emptyHistory = document.querySelector("#removed");
+const searchHistory = document.querySelector("#list");
+const clouds = document.querySelectorAll(".cloud");
+const days = document.querySelectorAll(".days");
+const averages = document.querySelectorAll(".avg");
+const maximums = document.querySelectorAll(".max");
+const minimums = document.querySelectorAll(".min");
+const conditions = document.querySelectorAll(".condition");
 
 const state = {
   unit: "F",
   currentCity: null,
   weatherByCity: new Map(),
+  weatherIcons: null,
 };
 
 function normalizeCity(value) {
@@ -31,53 +34,158 @@ function temperature(value, unit = state.unit) {
 }
 
 function weatherValue(day, field) {
-  const suffix = state.unit === "F" ? "F" : "C";
-  return day[`${field}${suffix}`];
+  return day[`${field}${state.unit}`];
 }
 
-function dayLabel(index) {
-  if (index === 0) return "Today";
+function forecastDate(index) {
   const date = new Date();
   date.setDate(date.getDate() + index);
-  return date.toLocaleDateString(undefined, { weekday: "long" });
+  return date.toLocaleDateString("en-US");
 }
 
 function setLoading(isLoading) {
   submitButton.disabled = isLoading;
-  submitButton.textContent = isLoading ? "Loading…" : "Get weather";
+  submitButton.textContent = isLoading ? "Loading..." : "Get Weather";
   form.setAttribute("aria-busy", String(isLoading));
 }
 
-function showStatus(message, tone = "neutral") {
-  status.textContent = message;
-  status.dataset.tone = tone;
-  status.classList.remove("hidden");
-  currentWeather.classList.add("hidden");
-  forecast.classList.add("hidden");
+function showMessage(message) {
+  const heading = document.createElement("h2");
+  heading.id = "cityName";
+  heading.textContent = message;
+  cityInfo.replaceChildren(heading);
+  temperatures.style.display = "none";
+}
+
+function createLabeledParagraph(label, value) {
+  const paragraph = document.createElement("p");
+  if (label) {
+    const strong = document.createElement("strong");
+    strong.textContent = label;
+    paragraph.append(strong, document.createTextNode(` ${value}`));
+  } else {
+    paragraph.textContent = value;
+  }
+  return paragraph;
+}
+
+function renderCurrentConditions(city, area, current) {
+  const heading = document.createElement("h2");
+  heading.id = "cityName";
+  const headingText = document.createElement("strong");
+  headingText.textContent = city === "Ho Chi Minh City" ? "Love U" : city;
+  heading.append(headingText);
+
+  const areaParagraph = createLabeledParagraph("Area:", area.areaName?.[0]?.value ?? "Unknown");
+  const regionParagraph = createLabeledParagraph(
+    area.region?.[0]?.value ? "Region:" : "",
+    area.region?.[0]?.value ?? "",
+  );
+  const countryParagraph = createLabeledParagraph("", area.country?.[0]?.value ?? "");
+
+  const conditionParagraph = document.createElement("p");
+  const description = document.createElement("strong");
+  description.style.margin = "0";
+  description.textContent = current.weatherDesc?.[0]?.value ?? "Conditions unavailable";
+  const feelsLike = document.createElement("strong");
+  feelsLike.textContent = temperature(current[`FeelsLike${state.unit}`]);
+  const observedAt = document.createElement("strong");
+  observedAt.textContent = new Date().toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  conditionParagraph.append(
+    description,
+    document.createTextNode(" Feels like "),
+    feelsLike,
+    document.createTextNode(" at "),
+    observedAt,
+  );
+
+  const unitButton = document.createElement("button");
+  unitButton.type = "button";
+  unitButton.className = "degreeCToF";
+  unitButton.setAttribute("aria-pressed", String(state.unit === "C"));
+  unitButton.textContent = state.unit === "F" ? "Change To °C?" : "Change To °F?";
+
+  cityInfo.replaceChildren(
+    heading,
+    areaParagraph,
+    regionParagraph,
+    countryParagraph,
+    conditionParagraph,
+    unitButton,
+  );
 }
 
 function renderForecast(weatherDays) {
-  forecast.replaceChildren();
   weatherDays.slice(0, 3).forEach((day, index) => {
-    const card = document.createElement("article");
-    card.className = "forecast-card";
+    days[index].replaceChildren();
+    const date = document.createElement("strong");
+    date.textContent = forecastDate(index);
+    days[index].append(date);
 
-    const heading = document.createElement("h3");
-    heading.textContent = dayLabel(index);
+    averages[index].replaceChildren();
+    const averageLabel = document.createElement("strong");
+    averageLabel.textContent = "Avg Temp:";
+    averages[index].append(averageLabel, document.createTextNode(` ${temperature(weatherValue(day, "avgtemp"))}`));
 
-    const condition = document.createElement("p");
-    condition.className = "forecast-condition";
-    condition.textContent = day.hourly?.[4]?.weatherDesc?.[0]?.value ?? "Forecast unavailable";
+    maximums[index].replaceChildren();
+    const maximumLabel = document.createElement("strong");
+    maximumLabel.textContent = "Max Temp:";
+    maximums[index].append(maximumLabel, document.createTextNode(` ${temperature(weatherValue(day, "maxtemp"))}`));
 
-    const range = document.createElement("p");
-    range.textContent = `High ${temperature(weatherValue(day, "maxtemp"))} · Low ${temperature(weatherValue(day, "mintemp"))}`;
+    minimums[index].replaceChildren();
+    const minimumLabel = document.createElement("strong");
+    minimumLabel.textContent = "Min Temp:";
+    minimums[index].append(minimumLabel, document.createTextNode(` ${temperature(weatherValue(day, "mintemp"))}`));
 
-    const average = document.createElement("p");
-    average.textContent = `Average ${temperature(weatherValue(day, "avgtemp"))}`;
-
-    card.append(heading, condition, range, average);
-    forecast.append(card);
+    conditions[index].replaceChildren();
+    if (index > 0) {
+      const condition = document.createElement("strong");
+      condition.textContent = day.hourly?.[4]?.weatherDesc?.[0]?.value ?? "Forecast unavailable";
+      conditions[index].append(document.createTextNode("At 12:00 PM "), condition);
+    }
   });
+}
+
+function createHeart() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.classList.add("surprise-heart");
+  svg.setAttribute("width", "30");
+  svg.setAttribute("height", "30");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "red");
+  svg.style.position = "absolute";
+  svg.style.top = "10px";
+  svg.style.left = "10px";
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute(
+    "d",
+    "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z",
+  );
+  svg.append(path);
+  return svg;
+}
+
+async function updateWeatherBackground(weatherCode, city) {
+  try {
+    if (!state.weatherIcons) {
+      const response = await fetch("icons.json");
+      if (!response.ok) throw new Error(`Icon request failed with status ${response.status}.`);
+      state.weatherIcons = await response.json();
+    }
+
+    clouds.forEach((cloud) => {
+      cloud.querySelectorAll(".surprise-heart").forEach((heart) => heart.remove());
+      cloud.style.backgroundImage = state.weatherIcons[weatherCode] ?? "url('assets/cloud.webp')";
+      if (city === "Ho Chi Minh City") cloud.append(createHeart());
+    });
+  } catch (error) {
+    console.error("Unable to update weather artwork.", error);
+  }
 }
 
 function renderHistory() {
@@ -86,13 +194,20 @@ function renderHistory() {
 
   state.weatherByCity.forEach((weather, city) => {
     const item = document.createElement("li");
-    const button = document.createElement("button");
+    item.className = "searchList";
+
+    const link = document.createElement("a");
+    link.className = "previousCity";
+    link.href = "#";
+    link.dataset.city = city;
+    link.textContent = city;
+
+    const currentTemperature = document.createElement("span");
+    currentTemperature.className = "current-temp";
     const feelsLike = weather.current_condition[0][`FeelsLike${state.unit}`];
-    button.type = "button";
-    button.className = "history-button";
-    button.dataset.city = city;
-    button.textContent = `${city} · ${temperature(feelsLike)}`;
-    item.append(button);
+    currentTemperature.textContent = `🌡️ ${temperature(feelsLike)}`;
+
+    item.append(link, currentTemperature);
     searchHistory.append(item);
   });
 }
@@ -100,27 +215,19 @@ function renderHistory() {
 function renderWeather(city, weather) {
   const area = weather.nearest_area?.[0];
   const current = weather.current_condition?.[0];
+  const weatherDays = weather.weather;
 
-  if (!area || !current || !Array.isArray(weather.weather)) {
+  if (!area || !current || !Array.isArray(weatherDays) || weatherDays.length < 3) {
     throw new Error("The weather service returned incomplete data.");
   }
 
-  const locationParts = [area.areaName?.[0]?.value, area.region?.[0]?.value, area.country?.[0]?.value].filter(Boolean);
-  const feelsLike = current[`FeelsLike${state.unit}`];
-  const description = current.weatherDesc?.[0]?.value ?? "Conditions unavailable";
-
   state.currentCity = city;
-  resultHeading.textContent = city;
-  locationDetail.textContent = locationParts.join(", ");
-  conditionDetail.textContent = `${description} · Feels like ${temperature(feelsLike)}`;
-  unitToggle.textContent = state.unit === "F" ? "Show °C" : "Show °F";
-  unitToggle.setAttribute("aria-pressed", String(state.unit === "C"));
-  renderForecast(weather.weather);
+  mainPage.style.opacity = "1";
+  renderCurrentConditions(city, area, current);
+  renderForecast(weatherDays);
   renderHistory();
-
-  status.classList.add("hidden");
-  currentWeather.classList.remove("hidden");
-  forecast.classList.remove("hidden");
+  temperatures.style.display = "flex";
+  void updateWeatherBackground(current.weatherCode, city);
 }
 
 async function fetchWeather(city) {
@@ -134,13 +241,15 @@ form.addEventListener("submit", async (event) => {
   const city = normalizeCity(cityInput.value);
 
   if (!city) {
-    showStatus("Enter a city before searching.", "error");
+    mainPage.style.opacity = "1";
+    showMessage("Please enter a City");
     cityInput.focus();
     return;
   }
 
+  mainPage.style.opacity = "1";
+  showMessage(`Loading weather for ${city}...`);
   setLoading(true);
-  showStatus(`Loading weather for ${city}…`);
 
   try {
     const weather = await fetchWeather(city);
@@ -149,22 +258,26 @@ form.addEventListener("submit", async (event) => {
     cityInput.value = "";
   } catch (error) {
     console.error(error);
-    showStatus(`We couldn't load weather for ${city}. Check the city name and try again.`, "error");
+    showMessage("City Invalid");
   } finally {
     setLoading(false);
   }
 });
 
-unitToggle.addEventListener("click", () => {
+cityInfo.addEventListener("click", (event) => {
+  const button = event.target.closest("button.degreeCToF");
+  if (!button || !state.currentCity) return;
+
   state.unit = state.unit === "F" ? "C" : "F";
   const weather = state.weatherByCity.get(state.currentCity);
   if (weather) renderWeather(state.currentCity, weather);
 });
 
 searchHistory.addEventListener("click", (event) => {
-  const button = event.target.closest("button[data-city]");
-  if (!button) return;
-  const city = button.dataset.city;
-  const weather = state.weatherByCity.get(city);
-  if (weather) renderWeather(city, weather);
+  const link = event.target.closest("a.previousCity[data-city]");
+  if (!link) return;
+
+  event.preventDefault();
+  const weather = state.weatherByCity.get(link.dataset.city);
+  if (weather) renderWeather(link.dataset.city, weather);
 });
