@@ -1,297 +1,170 @@
-// Getting main info box
-let mainBoxes = document.querySelector(".mainPage")
-// selectng the form tag 
-let weatherCity = document.querySelector("#weatherCity")
+const form = document.querySelector("#weather-form");
+const cityInput = document.querySelector("#city");
+const submitButton = document.querySelector("#weather-button");
+const status = document.querySelector("#status");
+const currentWeather = document.querySelector("#current-weather");
+const resultHeading = document.querySelector("#result-heading");
+const locationDetail = document.querySelector("#location-detail");
+const conditionDetail = document.querySelector("#condition-detail");
+const unitToggle = document.querySelector("#unit-toggle");
+const forecast = document.querySelector("#forecast");
+const searchHistory = document.querySelector("#search-history");
+const emptyHistory = document.querySelector("#empty-history");
 
-// creating the p and h2tags to be placed within the aritcle tag with the cityinfo id
-let areap  = document.createElement("p")
-let regionp  = document.createElement("p")
-let countryp  = document.createElement("p")
-let currentlyp  = document.createElement("p")
-let degreeButton = document.createElement("button")
+const state = {
+  unit: "F",
+  currentCity: null,
+  weatherByCity: new Map(),
+};
 
-// selecting the li tags within the article tags that is inside the aside tag with the id "temps"
-let days = document.querySelectorAll(".days")
-let avgs = document.querySelectorAll(".avg")
-let maxes = document.querySelectorAll(".max")
-let mines = document.querySelectorAll(".min")
-let conditions = document.querySelectorAll(".condition")
+function normalizeCity(value) {
+  return value
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
 
-// selecting the aside tag with the id "temps"
-let temps = document.querySelector("#temps");
+function temperature(value, unit = state.unit) {
+  return `${value} °${unit}`;
+}
 
-//  selecting the Main Box filled with the city info
-let cityName = document.querySelector("#cityName")
-let cityInfo = document.querySelector("#cityInfo")
+function weatherValue(day, field) {
+  const suffix = state.unit === "F" ? "F" : "C";
+  return day[`${field}${suffix}`];
+}
 
-// Used to reset all values when the input value is an empty string
-const lists = document.querySelectorAll(".lists");
+function dayLabel(index) {
+  if (index === 0) return "Today";
+  const date = new Date();
+  date.setDate(date.getDate() + index);
+  return date.toLocaleDateString(undefined, { weekday: "long" });
+}
 
-// Select all cloud elements
-let clouds = document.querySelectorAll(".cloud");
+function setLoading(isLoading) {
+  submitButton.disabled = isLoading;
+  submitButton.textContent = isLoading ? "Loading…" : "Get weather";
+  form.setAttribute("aria-busy", String(isLoading));
+}
 
-// creating an array to store the cities that have been searched
-let cityArr = []
+function showStatus(message, tone = "neutral") {
+  status.textContent = message;
+  status.dataset.tone = tone;
+  status.classList.remove("hidden");
+  currentWeather.classList.add("hidden");
+  forecast.classList.add("hidden");
+}
 
-// will change F to C and F to C
-let fahrenheit = true
+function renderForecast(weatherDays) {
+  forecast.replaceChildren();
+  weatherDays.slice(0, 3).forEach((day, index) => {
+    const card = document.createElement("article");
+    card.className = "forecast-card";
 
-// Will hold the json of compeleted APi call
-let cityWeatherObjects = {}
+    const heading = document.createElement("h3");
+    heading.textContent = dayLabel(index);
 
-// Count the event listener
-let countOfSubmit = 0
-// Creating the Date for the weather 
-let dates = new Date();
-let timeString = dates.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
+    const condition = document.createElement("p");
+    condition.className = "forecast-condition";
+    condition.textContent = day.hourly?.[4]?.weatherDesc?.[0]?.value ?? "Forecast unavailable";
+
+    const range = document.createElement("p");
+    range.textContent = `High ${temperature(weatherValue(day, "maxtemp"))} · Low ${temperature(weatherValue(day, "mintemp"))}`;
+
+    const average = document.createElement("p");
+    average.textContent = `Average ${temperature(weatherValue(day, "avgtemp"))}`;
+
+    card.append(heading, condition, range, average);
+    forecast.append(card);
+  });
+}
+
+function renderHistory() {
+  searchHistory.replaceChildren();
+  emptyHistory.classList.toggle("hidden", state.weatherByCity.size > 0);
+
+  state.weatherByCity.forEach((weather, city) => {
+    const item = document.createElement("li");
+    const button = document.createElement("button");
+    const feelsLike = weather.current_condition[0][`FeelsLike${state.unit}`];
+    button.type = "button";
+    button.className = "history-button";
+    button.dataset.city = city;
+    button.textContent = `${city} · ${temperature(feelsLike)}`;
+    item.append(button);
+    searchHistory.append(item);
+  });
+}
+
+function renderWeather(city, weather) {
+  const area = weather.nearest_area?.[0];
+  const current = weather.current_condition?.[0];
+
+  if (!area || !current || !Array.isArray(weather.weather)) {
+    throw new Error("The weather service returned incomplete data.");
+  }
+
+  const locationParts = [area.areaName?.[0]?.value, area.region?.[0]?.value, area.country?.[0]?.value].filter(Boolean);
+  const feelsLike = current[`FeelsLike${state.unit}`];
+  const description = current.weatherDesc?.[0]?.value ?? "Conditions unavailable";
+
+  state.currentCity = city;
+  resultHeading.textContent = city;
+  locationDetail.textContent = locationParts.join(", ");
+  conditionDetail.textContent = `${description} · Feels like ${temperature(feelsLike)}`;
+  unitToggle.textContent = state.unit === "F" ? "Show °C" : "Show °F";
+  unitToggle.setAttribute("aria-pressed", String(state.unit === "C"));
+  renderForecast(weather.weather);
+  renderHistory();
+
+  status.classList.add("hidden");
+  currentWeather.classList.remove("hidden");
+  forecast.classList.remove("hidden");
+}
+
+async function fetchWeather(city) {
+  const response = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
+  if (!response.ok) throw new Error(`Weather request failed with status ${response.status}.`);
+  return response.json();
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const city = normalizeCity(cityInput.value);
+
+  if (!city) {
+    showStatus("Enter a city before searching.", "error");
+    cityInput.focus();
+    return;
+  }
+
+  setLoading(true);
+  showStatus(`Loading weather for ${city}…`);
+
+  try {
+    const weather = await fetchWeather(city);
+    state.weatherByCity.set(city, weather);
+    renderWeather(city, weather);
+    cityInput.value = "";
+  } catch (error) {
+    console.error(error);
+    showStatus(`We couldn't load weather for ${city}. Check the city name and try again.`, "error");
+  } finally {
+    setLoading(false);
+  }
 });
 
-function formatDate(date){
-    return date.toLocaleDateString('en-US')
-}
+unitToggle.addEventListener("click", () => {
+  state.unit = state.unit === "F" ? "C" : "F";
+  const weather = state.weatherByCity.get(state.currentCity);
+  if (weather) renderWeather(state.currentCity, weather);
+});
 
-// Capitalize every word in the String
-function capitalizeWords(str) {
-    return str.split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-}
-
-// the event listener submit that is found within the form tag which also calls the API
-weatherCity.addEventListener('submit', (event) => {
-    event.preventDefault()
-    countOfSubmit++
-    let city = event.target.city.value.trim()
-    let capitalizeCity = capitalizeWords(city)
-    // Change text if value is empty otherwise call the API
-    if (city === "") {
-        cityInfo.innerHTML = "<h2 id='cityName'>Please enter a City</h2>";
-        lists.forEach(li => li.textContent = ""); 
-        temps.style.display = "none"
-    } else {
-        let weatherData = `https://wttr.in/${capitalizeCity}?format=j1`
-        mainBoxes.style.opacity = '1';
-        fetch(weatherData)
-        .then((response) =>{
-            if (!response.ok) {
-                cityInfo.innerHTML = "<h2 id='cityName'>City Invalid</h2>";
-                lists.forEach(li => li.textContent = ""); 
-                throw new Error(`Error: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then((json) => {
-            cityWeather(json,capitalizeCity)
-            cityWeatherObjects[capitalizeCity] = json
-            if(fahrenheit){
-                previousSearches(capitalizeCity, json.current_condition[0].FeelsLikeF + " °F")
-            } else {
-                previousSearches(capitalizeCity, json.current_condition[0].FeelsLikeC + " °C")
-            }
-        })
-        .catch((error) => {
-            console.log("Error fetching City Weather Data: ", error)
-        });
-    }
-    event.target.city.value = ""
-})
-
-const cityWeather = (json, city) => {
-    cityInfo.innerHTML = ""; // Clear previous content
-    let areaDate = json.nearest_area[0]
-    let currentTempData = json.current_condition[0]
-    let area = areaDate.areaName[0].value
-    let region = areaDate.region[0].value
-    let country = areaDate.country[0].value
-    let currentTemp = `${currentTempData.FeelsLikeF} °F`
-    let currentWeather = json.current_condition[0].weatherDesc[0].value
-    let weatherCode = json.current_condition[0].weatherCode
-    changeBackground(weatherCode)
-    //Creating the box of Weather Info  
-    cityName.innerHTML = `<strong>${city}</strong>`
-    areap.innerHTML = `<strong>Area:</strong> ${area}`
-    {region ? regionp.innerHTML = `<strong>Region:</strong> ${region}` : regionp.innerHTML = ""}
-    countryp.innerHTML = `${country}`
-    currentlyp.innerHTML = `<strong style="margin: 0;">${currentWeather}&nbsp;</strong> Feels like <strong>&nbsp;${currentTemp}</strong> at <strong>&nbsp;${timeString}</strong>`;
-
-    degreeButton.classList.add("degreeCToF")
-    degreeButton.innerHTML = `${fahrenheit ? "Change To °C?" : "Change To °F?"}`
-
-    // Adding the created HTML to the DOM
-    cityInfo.append(cityName, areap, regionp, countryp, currentlyp, degreeButton);
-
-    // Adding the temperture for the today, next day, and next day
-    temps.style.display = "flex"
-    let threeDays = ["Today","Tomorrow","Day After Tomorrow"]
-    for (let day = 0; day < threeDays.length; day++) {
-        let avg = json.weather[day].avgtempF
-        let max = json.weather[day].maxtempF
-        let min = json.weather[day].mintempF
-        let condition = json.weather[day].hourly[4].weatherDesc[0].value
-        if (countOfSubmit <= 1){
-            dates.setDate(dates.getDate() + day);
-            let formattedDate = formatDate(dates)
-            // 3 days worth of  data
-            days[day].innerHTML = `<strong>${formattedDate}</strong> `
-        }
-        avgs[day].innerHTML = `<strong>Avg Temp:</strong> ${avg} °F`
-        maxes[day].innerHTML = `<strong>Max Temp:</strong> ${max} °F`
-        mines[day].innerHTML = `<strong>Min Temp:</strong> ${min} °F`
-        if(day === 0 ){
-            conditions[day].innerHTML = ``
-        } else {
-            conditions[day].innerHTML = `At 12:00 PM <strong>${condition}</strong>`
-        }
-    }
-}
-
-function changeBackground(weatherCode) {
-    fetch('icons.json')
-    .then(response => response.json())
-    .then(data => {
-        const weatherIcons = data;
-        // Update background image for each cloud
-        clouds.forEach(cloud => {
-            cloud.style.backgroundImage = `${weatherIcons[weatherCode]}`; 
-        });
-    })
-    .catch(error => console.error("Error loading JSON:", error));
-}
-
-// adds all the cities searched onto the web page
-const previousSearches = (city, currently) => {
-    // selecting the aside tag which has all the li tags within in it 
-    document.querySelector("#removed").classList.add("hidden")
-
-    if(!cityArr.includes(city)){
-        let searchList = document.querySelector("#list")
-        let previousSearch = document.createElement("li")
-        previousSearch.innerHTML = `
-        <a class="previousCity" href="#">${city}</a> 
-        <span class="current-temp">🌡️ ${currently}</span>
-        `;
-        previousSearch.className = "searchList"
-        searchList.append(previousSearch)
-        cityArr.push(city)
-    }
-}
-
-// Needed to call Api again so that the onclick can work
-let previousCitySearches = document.querySelector("#list")
-
-if(!!previousCitySearches){
-    previousCitySearches.addEventListener("click", function (event) {
-        if (event.target.classList.contains("previousCity")) {
-            let previousCity = event.target.innerHTML
-            cityWeatherObj(cityWeatherObjects[previousCity], previousCity)
-            funHea(previousCity)
-        }
-
-    });
-}
-
-// Add Changing C to F function
-let changingDegree = document.querySelector("degreeCToF")
-if(!changingDegree){
-    degreeButton.addEventListener("click", function (event) {
-        if(fahrenheit){
-            fahrenheit = false 
-        } else {
-            fahrenheit = true 
-        }
-        updatePreviousSearches()
-        cityWeatherObj(cityWeatherObjects[cityName.innerText], cityName.innerText)
-    })
-}
-
-function updatePreviousSearches() {
-    let searchListAll = document.querySelectorAll(".previousCity");
-    let currentTemp = document.querySelectorAll(".current-temp");
-    if (searchListAll.length !== currentTemp.length) return;
-
-    // Loop through each element in searchListAll and update currentTemp
-    searchListAll.forEach((ele, index) => {
-        const city = ele.innerText;
-        if (fahrenheit) {
-            currentTemp[index].innerHTML = `
-                🌡️ ${cityWeatherObjects[city].current_condition[0].FeelsLikeF} °F
-            `;
-        } else {
-            currentTemp[index].innerHTML = `
-                🌡️ ${cityWeatherObjects[city].current_condition[0].FeelsLikeC} °C
-            `;
-        }
-    });
-}
-
-// same as cityweather but we are not using an API call
-const cityWeatherObj = (json, city) => {
-    cityInfo.innerHTML = ""; // Clear previous content
-    let areaDate = json.nearest_area[0]
-    let currentTempData = json.current_condition[0]
-    let area = areaDate.areaName[0].value
-    let region = areaDate.region[0].value
-    let country = areaDate.country[0].value
-    let currentTemp = fahrenheit ? `${currentTempData.FeelsLikeF} °F` : `${currentTempData.FeelsLikeC} °C`;
-    let currentWeather = json.current_condition[0].weatherDesc[0].value
-    let weatherCode = json.current_condition[0].weatherCode
-    changeBackground(weatherCode)
-    //Creating the box of Weather Info  
-    cityName.innerHTML = `<strong>${city}</strong>`
-    areap.innerHTML = `<strong>Area:</strong> ${area}`
-    {region ? regionp.innerHTML = `<strong>Region:</strong> ${region}` : regionp.innerHTML = ""}
-    countryp.innerHTML = `${country}`
-    currentlyp.innerHTML = `<strong style="margin: 0;">${currentWeather}&nbsp;</strong> Feels like <strong>&nbsp;${currentTemp}</strong> at <strong>&nbsp;${timeString}</strong>`;
-    degreeButton.classList.add("degreeCToF")
-    degreeButton.innerHTML = `${fahrenheit ? "Change To °C?" : "Change To °F?"}`
-    // Adding the created HTML to the DOM
-    cityInfo.append(cityName, areap, regionp, countryp, currentlyp, degreeButton);
-
-    // Adding the temperture for the today, next day, and next day
-    temps.style.display = "flex"
-    let threeDays = ["Today","Tomorrow","Day After Tomorrow"]
-    for (let day = 0; day < threeDays.length; day++) {
-        let avg = json.weather[day].avgtempF
-        let max = json.weather[day].maxtempF
-        let min = json.weather[day].mintempF
-        let condition = json.weather[day].hourly[4].weatherDesc[0].value
-        if(fahrenheit){
-            avg = json.weather[day].avgtempF + " °F"
-            max = json.weather[day].maxtempF + " °F"
-            min = json.weather[day].mintempF + " °F"
-        } else {
-            avg = json.weather[day].avgtempC + " °C"
-            max = json.weather[day].maxtempC + " °C"
-            min = json.weather[day].mintempC + " °C"
-        }
-
-        avgs[day].innerHTML = `<strong>Avg Temp:</strong> ${avg}`
-        maxes[day].innerHTML = `<strong>Max Temp:</strong> ${max}`
-        mines[day].innerHTML = `<strong>Min Temp:</strong> ${min}`
-        if(day === 0 ){
-            conditions[day].innerHTML = ``
-        } else {
-            conditions[day].innerHTML = `At 12:00 PM <strong>${condition}</strong>`
-        }
-    }
-
-}
-
-function funHea(capitalizeCity){
-    const surpiseSVG = `
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="red" xmlns="http://www.w3.org/2000/svg" 
-        style="position: absolute; top: 10px; left: 10px;">
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-    </svg>
-`;
-
-if(capitalizeCity === "Ho Chi Minh City"){
-        clouds.forEach(cloud => {
-            cloud.innerHTML += surpiseSVG;
-        });
-        cityName.innerHTML = `Love U</strong>`
-    }
-}
+searchHistory.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-city]");
+  if (!button) return;
+  const city = button.dataset.city;
+  const weather = state.weatherByCity.get(city);
+  if (weather) renderWeather(city, weather);
+});
