@@ -9,7 +9,7 @@ A responsive vanilla JavaScript application for searching current weather condit
 - Switching between Fahrenheit and Celsius without another network request
 - Caching previous searches for the current browser session
 - Explicit loading, empty, success, and error states
-- Responsive and keyboard-accessible interface behavior
+- The original responsive interface, animated weather layers, and weather-code imagery
 - Cypress end-to-end tests with deterministic API fixtures
 
 ## Live application
@@ -43,15 +43,17 @@ npm test
 
 ## Architecture
 
-- `index.html` contains the semantic page structure and accessible status regions.
+- `index.html` preserves the original page structure and adds non-visual accessibility metadata.
 - `main.js` owns application state, weather requests, rendering, unit conversion, and the session search history.
-- `style.css` contains the responsive visual system and reduced-motion behavior.
-- `cypress/e2e/weather.cy.js` covers the main user journey, unit switching, cached history, and request failure.
+- `style.css` preserves the original responsive visual system and animated weather layers.
+- `icons.json` maps weather codes to the original local background artwork.
+- `cypress/e2e/weather.cy.js` covers the main user journey, original panels and artwork, unit switching, cached history, and request failure.
 - `.github/workflows/quality.yml` runs install, build, and end-to-end verification on pushes and pull requests.
 
 ## Design decisions
 
 - The project remains framework-free. A framework rewrite would hide the original DOM and API-learning evidence without solving a product need.
+- The original interface is an intentional part of the project. Maintenance may improve safety, correctness, dependencies, tests, and documentation, but it does not redesign the UI.
 - Search history is intentionally session-only; the app does not collect accounts or personal data.
 - Weather responses are cached by normalized city name so toggling units and reopening a previous result do not make unnecessary API calls.
 - User-provided city names are rendered with `textContent`, not injected as HTML.
@@ -71,7 +73,8 @@ The 2026 update:
 - removed tests for UI and features that no longer existed;
 - fixed malformed degree symbols and emoji encoding;
 - removed duplicated rendering paths and unsafe user-input HTML;
-- added clear failure states, semantic labels, focus styles, responsive layouts, and reduced-motion support;
+- preserved the original layout, animated weather artwork, Easter egg, and footer while adding non-visual accessibility metadata;
+- added tests that protect the original major panels and weather-art layers from accidental redesign;
 - added a reproducible production build and GitHub Actions quality workflow.
 
 ## Original learning context
