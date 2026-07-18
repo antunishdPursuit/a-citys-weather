@@ -47,7 +47,7 @@ npm test
 - `main.js` owns application state, weather requests, rendering, unit conversion, and the session search history.
 - `style.css` preserves the original responsive visual system and animated weather layers.
 - `icons.json` maps weather codes to the original local background artwork.
-- `cypress/e2e/weather.cy.js` covers the main user journey, original panels and artwork, unit switching, cached history, and request failure.
+- `cypress/e2e/weather.cy.js` covers the main user journey, original panels and artwork, unit switching, cached history, request failure, motion controls, and desktop/mobile layout geometry.
 - `.github/workflows/quality.yml` runs install, build, and end-to-end verification on pushes and pull requests.
 
 ## Design decisions
@@ -57,6 +57,7 @@ npm test
 - Search history is intentionally session-only; the app does not collect accounts or personal data.
 - Weather responses are cached by normalized city name so toggling units and reopening a previous result do not make unnecessary API calls.
 - User-provided city names are rendered with `textContent`, not injected as HTML.
+- The animated sky uses the six original artwork layers plus condition-specific emoji accents. Users can pause the motion, and the app honors the system reduced-motion preference.
 
 ## Known limitations
 
@@ -75,6 +76,10 @@ The 2026 update:
 - removed duplicated rendering paths and unsafe user-input HTML;
 - preserved the original layout, animated weather artwork, Easter egg, and footer while adding non-visual accessibility metadata;
 - added tests that protect the original major panels and weather-art layers from accidental redesign;
+- repaired the phone layout and fixed-footer overlap while preserving the desktop composition;
+- improved text contrast and current-condition hierarchy within the original palette;
+- enriched the weather background with faster layered artwork and condition-specific emojis;
+- added pause/resume and reduced-motion behavior;
 - added a reproducible production build and GitHub Actions quality workflow.
 
 ## Original learning context
