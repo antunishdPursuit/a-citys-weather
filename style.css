@@ -1,9 +1,51 @@
+:root {
+    --color-sky: #87ceeb;
+    --color-header: #39c1ee;
+    --color-primary: #075985;
+    --color-primary-hover: #064569;
+    --color-border-strong: #0d75bd;
+    --color-surface: #e0f7fa;
+    --color-surface-strong: #b3e5fc;
+    --color-text-strong: #17324d;
+    --color-text: #334155;
+    --color-text-muted: #475569;
+    --color-text-inverse: #f0f8ff;
+    --color-accent-sun: #f4b942;
+    --color-focus: #075985;
+    --color-error: #b91c1c;
+    --color-today-start: #fbc2eb;
+    --color-today-end: #a6c1ee;
+    --color-tomorrow-start: #a1c4fd;
+    --color-tomorrow-end: #c2e9fb;
+    --color-later-start: #ffecd2;
+    --color-later-end: #fcb69f;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1.25rem;
+    --radius-pill: 999px;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-card: 0 4px 8px rgba(0, 0, 0, 0.2);
+    --shadow-emphasis: 0 8px 15px rgba(0, 150, 255, 0.3);
+    --content-max: 75rem;
+    --motion-fast: 150ms;
+    --motion-standard: 250ms;
+}
+
 body, html {
     margin: 0;
     margin-top: 2px;
     padding: 0 10px;
-    background: #87ceeb;
-    font-family: Arial, sans-serif;
+    background: var(--color-sky);
+    color: var(--color-text);
+    font-family: Arial, Helvetica, sans-serif;
 
 }
 
@@ -26,8 +68,8 @@ header {
     grid-template-columns: auto;
     padding: 5px;
     margin-bottom: 10px;
-    border: 1px solid #0d75bd;
-    background-color: rgb(57, 193, 238);
+    border: 1px solid var(--color-border-strong);
+    background-color: var(--color-header);
 }
 
 #weatherCity {
@@ -40,7 +82,7 @@ header {
 }
 
 .appName {
-    color: #0153a4;
+    color: var(--color-primary);
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
     margin-bottom: 10px;
 }
@@ -52,11 +94,11 @@ header {
     border: none;
     outline: none;
     font-size: 1em;
-    color: #333;
-    transition: box-shadow 0.3s ease;
+    color: var(--color-text);
+    transition: box-shadow var(--motion-standard) ease;
     box-shadow: inset 0 4px 8px rgba(0, 150, 255, 0.2);
-    background: linear-gradient(to right, #e0f7fa, #b3e5fc);
-    border-radius: 50px;
+    background: linear-gradient(to right, var(--color-surface), var(--color-surface-strong));
+    border-radius: var(--radius-pill);
 }
 
 #city:focus {
@@ -70,36 +112,36 @@ header {
     cursor: pointer;
     padding: 12px 25px;
     border: none;
-    border-radius: 50px;
+    border-radius: var(--radius-pill);
     margin-left: 10px;
     font-size: 1em;
     font-weight: bold;
-    color: white;
-    background: linear-gradient(to bottom, #0d75bd, #075985);
-    box-shadow: 0 8px 15px rgba(0, 150, 255, 0.3);
-    transition: all 0.3s ease;
+    color: var(--color-text-inverse);
+    background: linear-gradient(to bottom, var(--color-border-strong), var(--color-primary));
+    box-shadow: var(--shadow-emphasis);
+    transition: transform var(--motion-standard) ease, background var(--motion-standard) ease, box-shadow var(--motion-standard) ease;
     overflow: hidden;
 }
 
 
 .degreeCToF:hover, #weather_button:hover, #motion-toggle:hover {
     transform: scale(1.05);
-    background: linear-gradient(to bottom, #075985, #064569);
+    background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-hover));
     box-shadow: 0 12px 20px rgba(0, 150, 255, 0.4);
 }
 
 #motion-toggle {
-    color: #075985;
-    background: linear-gradient(to bottom, #f0f9ff, #b3e5fc);
+    color: var(--color-primary);
+    background: linear-gradient(to bottom, var(--color-text-inverse), var(--color-surface-strong));
 }
 
 #motion-toggle:hover {
-    color: white;
+    color: var(--color-text-inverse);
 }
 
 #motion-toggle:disabled {
     cursor: not-allowed;
-    color: #334155;
+    color: var(--color-text);
     opacity: 0.8;
     transform: none;
 }
@@ -233,16 +275,15 @@ body.motion-paused .weather-emoji {
 #cityInfo {
     position: relative;
     overflow: hidden;
-    margin: 20px auto;
-    padding: 20px;
+    margin: var(--space-6) auto;
+    padding: var(--space-6);
     max-width: 420px;
-    color: #333;
+    color: var(--color-text);
     text-align: center;
-    border: 2px solid teal;
-    box-shadow: 0 8px 15px rgba(0, 150, 255, 0.3);
-    background: linear-gradient(to bottom, #b3e5fc, #87ceeb);
-    border-radius: 20px;
-    background-color: antiquewhite;
+    border: 2px solid var(--color-border-strong);
+    box-shadow: var(--shadow-emphasis);
+    background: linear-gradient(to bottom, var(--color-surface-strong), var(--color-sky));
+    border-radius: var(--radius-lg);
 }
 
 #cityName {
@@ -251,7 +292,7 @@ body.motion-paused .weather-emoji {
     justify-content: center;
     margin-top: 0px;
     margin-bottom: 10px;
-    color: #075985;
+    color: var(--color-primary);
     font-size: 1.8em;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -267,12 +308,12 @@ body.motion-paused .weather-emoji {
     align-items: center;
     justify-content: center;
     margin: 8px 0;
-    color: #444;
+    color: var(--color-text);
     font-size: 1em;
 }
 
 #cityInfo strong {
-    color: #075985;
+    color: var(--color-primary);
     margin-right: 5px;
 }
 
@@ -326,7 +367,7 @@ body.motion-paused .weather-emoji {
 
 #cityInfo .observed-time {
     margin: 0;
-    color: #334155;
+    color: var(--color-text);
 }
 
 #cityInfo .degreeCToF {
@@ -353,11 +394,11 @@ body.motion-paused .weather-emoji {
     width: 100%;
     padding: 15px;
     max-width: 200px;
-    color: #17324d;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease;
-    background: linear-gradient(to bottom, #87ceeb, #1e90ff);
-    border-radius: 10px;
+    color: var(--color-text-strong);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--motion-standard) ease;
+    background: linear-gradient(to bottom, var(--color-sky), var(--color-border-strong));
+    border-radius: var(--radius-md);
 }
 
 .tempertures:hover {
@@ -388,15 +429,15 @@ body.motion-paused .weather-emoji {
 }
 
 #today {
-    background: linear-gradient(to bottom, #fbc2eb, #a6c1ee);
+    background: linear-gradient(to bottom, var(--color-today-start), var(--color-today-end));
 }
 
 #tomorrow {
-    background: linear-gradient(to bottom, #a1c4fd, #c2e9fb);
+    background: linear-gradient(to bottom, var(--color-tomorrow-start), var(--color-tomorrow-end));
 }
 
 #dayAfterTomorrow {
-    background: linear-gradient(to bottom, #ffecd2, #fcb69f);
+    background: linear-gradient(to bottom, var(--color-later-start), var(--color-later-end));
 }
 
 /* ------------------------ Previous searches styling ------------------------ */
@@ -405,22 +446,22 @@ section {
     margin: 20px auto;
     padding: 15px;
     max-width: 300px;
-    color: #333;
-    background: linear-gradient(to bottom, #e0f7fa, #b3e5fc);
+    color: var(--color-text);
+    background: linear-gradient(to bottom, var(--color-surface), var(--color-surface-strong));
     box-shadow: 0 4px 8px rgba(0, 150, 255, 0.2);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
 }
 
 section h4 {
     margin-bottom: 10px;
-    color: #075985;
+    color: var(--color-primary);
     font-size: 1.2em;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 #removed {
     margin: 10px 0;
-    color: #666;
+    color: var(--color-text-muted);
     font-style: italic;
 }
 
@@ -436,12 +477,12 @@ section h4 {
     align-items: center;
     margin: 8px 0;
     padding: 10px;
-    color: #333;
+    color: var(--color-text);
     font-size: 0.9em;
-    transition: transform 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform var(--motion-fast) ease;
+    box-shadow: var(--shadow-sm);
     background: rgba(255, 255, 255, 0.8);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
 }
 
 #list li:hover {
@@ -453,7 +494,7 @@ section h4 {
 .previousCity {
     display: inline-flex;
     align-items: center;
-    color: #075985;
+    color: var(--color-primary);
     font-weight: bold;
     text-decoration: none;
 }
@@ -473,16 +514,16 @@ section h4 {
     width: 100%;
     bottom: 0;
     padding: 5px 0;
-    color: white;
+    color: var(--color-text-inverse);
     box-sizing: border-box;
-    border-top: 2px solid #075985;
-    background: linear-gradient(to right, #0d75bd, #075985);
+    border-top: 2px solid var(--color-primary);
+    background: linear-gradient(to right, var(--color-border-strong), var(--color-primary));
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .weather-footer p {
     margin: 5px 0;
-    color: #f0f8ff;
+    color: var(--color-text-inverse);
     font-size: 0.9em;
 }
 
@@ -497,15 +538,15 @@ section h4 {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #f0f8ff;
+    color: var(--color-text-inverse);
     font-size: 1em;
     font-weight: bold;
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: color var(--motion-standard) ease;
 }
 
 .footer-link:hover {
-    color: #ffecd2;
+    color: var(--color-later-start);
 }
 
 .footer-icon {
