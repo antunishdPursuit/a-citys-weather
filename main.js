@@ -112,14 +112,16 @@ function renderCurrentConditions(city, area, current, isSecret) {
   headingText.textContent = isSecret ? "Love U" : city;
   heading.append(headingText);
 
-  const areaParagraph = createLabeledParagraph("Area:", area.areaName?.[0]?.value ?? "Unknown");
+  const countryName = area.country?.[0]?.value ?? "";
+  const areaName = displayAreaName(area.areaName?.[0]?.value ?? "Unknown", countryName);
+  const areaParagraph = createLabeledParagraph("Area:", areaName);
   areaParagraph.className = "location-line";
   const regionParagraph = createLabeledParagraph(
     area.region?.[0]?.value ? "Region:" : "",
     area.region?.[0]?.value ?? "",
   );
   regionParagraph.className = "location-line";
-  const countryParagraph = createLabeledParagraph("", area.country?.[0]?.value ?? "");
+  const countryParagraph = createLabeledParagraph("", countryName);
   countryParagraph.className = "location-line";
 
   const conditionParagraph = document.createElement("p");
@@ -237,6 +239,11 @@ function weatherTheme(description) {
     return { name: "cloud", symbol: "☁️" };
   }
   return { name: "clear", symbol: "☀️" };
+}
+
+function displayAreaName(value, country) {
+  const isKnownDaKaoEncoding = value === "Ã\u0090A Kao" || value === "ÐA Kao";
+  return country === "Vietnam" && isKnownDaKaoEncoding ? "Đa Kao" : value;
 }
 
 function parseCityInput(value) {

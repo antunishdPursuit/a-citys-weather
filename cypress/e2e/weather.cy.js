@@ -65,6 +65,21 @@ describe("A City's Weather", () => {
     cy.get(".surprise-heart").should("not.exist");
   });
 
+  it("repairs the known Da Kao encoding defect from the weather provider", () => {
+    cy.fixture("melbourne.json").then((weather) => {
+      weather.nearest_area[0].areaName[0].value = "Ã\u0090A Kao";
+      weather.nearest_area[0].country[0].value = "Vietnam";
+      cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1", weather).as(
+        "encodedAreaWeather",
+      );
+    });
+
+    cy.get("#city").type("Ho Chi Minh City").type("{enter}");
+    cy.wait("@encodedAreaWeather");
+
+    cy.get("#cityInfo").should("contain.text", "Đa Kao").and("not.contain.text", "Ã");
+  });
+
   it("activates the protected city state only for the exact secret input", () => {
     cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1", {
       fixture: "melbourne.json",
