@@ -16,6 +16,7 @@ A responsive vanilla JavaScript application for searching current weather condit
 - Pause animation and use the interface with reduced-motion preferences
 - Receive clear loading, empty, and error states
 - Automatically localize the interface and weather descriptions from browser language preferences
+- Change languages manually with a selector that remembers the visitor's preference
 - Use the application across desktop and mobile layouts
 
 ## Built With
@@ -62,13 +63,14 @@ The repository's Quality workflow runs these checks automatically for pushes to 
 - The interface supports keyboard focus, reduced-motion preferences, and responsive content flow.
 - English, Spanish, and Vietnamese are supported. Other browser languages fall back to English.
 - Interface copy is translated locally, wttr.in supplies localized weather descriptions, and native `Intl` formatters handle dates, times, and numbers.
+- The language selector offers browser-based Auto mode and stores a manual choice locally in the visitor's browser.
 
 ## Limitations
 
 - Results depend on wttr.in availability and location matching.
 - The application provides daily summaries rather than hourly forecasts or severe-weather alerts.
 - Previous searches reset when the page is refreshed.
-- Automatic language selection is limited to English, Spanish, and Vietnamese.
+- Language selection is limited to English, Spanish, and Vietnamese.
 - This is a portfolio application, not a safety-critical weather source.
 
 ## Credits
