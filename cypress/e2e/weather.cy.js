@@ -12,6 +12,9 @@ describe("A City's Weather", () => {
     cy.get("#cityName").should("have.text", "Enter a city to check its weather.");
     cy.get(".cloud").should("have.length", 6);
     cy.get("#historyPanel").should("not.be.visible");
+    cy.get("#weather_button").then(($button) => {
+      expect(getComputedStyle($button[0], "::after").content).to.equal("none");
+    });
   });
 
   it("renders the original panels and weather artwork", () => {
@@ -76,6 +79,67 @@ describe("A City's Weather", () => {
     cy.get(".surprise-heart").should("not.exist");
   });
 
+  it("requires the secret input's exact internal spacing", () => {
+    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City%2C%20O?format=j1", {
+      fixture: "melbourne.json",
+    }).as("ordinaryWeather");
+
+    cy.get("#city").type("Ho  Chi Minh City, O").type("{enter}");
+    cy.wait("@ordinaryWeather");
+
+    cy.get("#cityName").should("have.text", "Ho Chi Minh City, O");
+    cy.get(".surprise-heart").should("not.exist");
+  });
+
+  it("uses one coherent visual theme for the returned condition", () => {
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
+      fixture: "melbourne.json",
+    }).as("themedWeather");
+
+    cy.get("#city").type("Melbourne").type("{enter}");
+    cy.wait("@themedWeather");
+
+    cy.get("body").should("have.attr", "data-weather", "cloud");
+    cy.get(".weather-emoji").should("have.length", 5).each(($emoji) => {
+      expect($emoji.text()).to.equal("☁️");
+    });
+    cy.get(".cloud").each(($cloud) => {
+      expect($cloud.css("background-image")).to.include("partly-cloudy.png");
+    });
+  });
+
+  it("distinguishes a city that cannot be found", () => {
+    cy.intercept("GET", "https://wttr.in/Nowhere?format=j1", {
+      statusCode: 404,
+      body: {},
+    }).as("missingWeather");
+
+    cy.get("#city").type("Nowhere").type("{enter}");
+    cy.wait("@missingWeather");
+
+    cy.get("#cityName").should(
+      "have.text",
+      "We couldn't find weather for “Nowhere.” Check the spelling and try again.",
+    );
+    cy.get("#cityInfo").should("have.attr", "role", "alert");
+  });
+
+  it("does not save an incomplete weather response to history", () => {
+    cy.intercept("GET", "https://wttr.in/Incomplete?format=j1", {
+      statusCode: 200,
+      body: {},
+    }).as("incompleteWeather");
+
+    cy.get("#city").type("Incomplete").type("{enter}");
+    cy.wait("@incompleteWeather");
+
+    cy.get("#cityName").should(
+      "have.text",
+      "Weather details for “Incomplete” are incomplete. Please try again later.",
+    );
+    cy.get("#historyPanel").should("not.be.visible");
+  });
+
   it("distinguishes a weather service failure", () => {
     cy.intercept("GET", "https://wttr.in/Nowhere?format=j1", {
       statusCode: 500,
@@ -121,6 +185,24 @@ describe("A City's Weather", () => {
     });
     cy.get(".tempertures").should("have.length", 3).and("be.visible");
     cy.get(".weather-footer").should("have.css", "position", "relative");
+  });
+
+  it("keeps the footer below results on a short desktop viewport", () => {
+    cy.viewport(1440, 600);
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
+      fixture: "melbourne.json",
+    }).as("shortViewportWeather");
+
+    cy.get("#city").type("Melbourne").type("{enter}");
+    cy.wait("@shortViewportWeather");
+
+    cy.get(".mainPage").then(($main) => {
+      cy.get(".weather-footer").then(($footer) => {
+        expect($footer[0].getBoundingClientRect().top).to.be.at.least(
+          $main[0].getBoundingClientRect().bottom,
+        );
+      });
+    });
   });
 
   it("stacks the weather experience cleanly on phones", () => {

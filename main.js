@@ -315,6 +315,7 @@ function renderWeather(city, weather, { isSecret = false } = {}) {
 
   state.currentCity = city;
   state.secretActive = isSecret;
+  state.weatherByCity.set(city, weather);
   cityInfo.classList.remove("error-state");
   cityInfo.setAttribute("role", "status");
   renderCurrentConditions(city, area, current, isSecret);
@@ -354,7 +355,6 @@ form.addEventListener("submit", async (event) => {
 
   try {
     const weather = await fetchWeather(city);
-    state.weatherByCity.set(city, weather);
     renderWeather(city, weather, { isSecret });
     cityInput.value = "";
   } catch (error) {
