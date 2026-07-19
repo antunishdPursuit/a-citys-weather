@@ -88,8 +88,6 @@ function applyStaticTranslations() {
   document.querySelector("#cityName").textContent = t("emptyPrompt");
   document.querySelector("#historyHeading strong").textContent = t("previousSearches");
   emptyHistory.textContent = t("noPreviousSearches");
-  document.querySelector("#connect-label").textContent = t("connect");
-  document.querySelector("#portfolio-label").textContent = t("portfolio");
   document.querySelector("#app-copyright").textContent = t("appCopyright");
   document.querySelector("#language-support").textContent = t("supportedLanguages");
   const sunCredit = document.querySelector("#sun-credit");
