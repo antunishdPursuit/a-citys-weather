@@ -1,3 +1,5 @@
+import { resolveLocale, translate } from "./localization.js";
+
 const mainPage = document.querySelector(".mainPage");
 const form = document.querySelector("#weatherCity");
 const cityInput = document.querySelector("#city");
@@ -15,8 +17,20 @@ const averages = document.querySelectorAll(".avg");
 const maximums = document.querySelectorAll(".max");
 const minimums = document.querySelectorAll(".min");
 const SECRET_INPUT = "ho chi minh city, o";
+const preferredLanguages = navigator.languages?.length
+  ? navigator.languages
+  : [navigator.language];
+const locale = resolveLocale(preferredLanguages);
+const t = (key, replacements) => translate(locale, key, replacements);
+const dateFormatter = new Intl.DateTimeFormat(locale);
+const timeFormatter = new Intl.DateTimeFormat(locale, {
+  hour: "numeric",
+  minute: "2-digit",
+});
+const numberFormatter = new Intl.NumberFormat(locale);
 
 const state = {
+  locale,
   unit: "F",
   currentCity: null,
   weatherByCity: new Map(),
@@ -44,7 +58,11 @@ function normalizeCity(value) {
 }
 
 function temperature(value, unit = state.unit) {
-  return `${value} °${unit}`;
+  const numericValue = Number(value);
+  const displayValue = Number.isFinite(numericValue)
+    ? numberFormatter.format(numericValue)
+    : value;
+  return `${displayValue} °${unit}`;
 }
 
 function weatherValue(day, field) {
@@ -54,25 +72,47 @@ function weatherValue(day, field) {
 function forecastDate(index) {
   const date = new Date();
   date.setDate(date.getDate() + index);
-  return date.toLocaleDateString("en-US");
+  return dateFormatter.format(date);
+}
+
+function applyStaticTranslations() {
+  document.documentElement.lang = locale;
+  document.title = t("pageTitle");
+  document.querySelector("#site-title").textContent = t("pageTitle");
+  document.querySelector("#site-subtitle").textContent = t("subtitle");
+  form.setAttribute("aria-label", t("searchLabel"));
+  cityInput.placeholder = t("cityPlaceholder");
+  cityInput.setAttribute("aria-label", t("cityLabel"));
+  submitButton.textContent = t("getWeather");
+  motionToggle.textContent = t("pauseMotion");
+  document.querySelector("#cityName").textContent = t("emptyPrompt");
+  document.querySelector("#historyHeading strong").textContent = t("previousSearches");
+  emptyHistory.textContent = t("noPreviousSearches");
+  document.querySelector("#connect-label").textContent = t("connect");
+  document.querySelector("#portfolio-label").textContent = t("portfolio");
+  document.querySelector("#app-copyright").textContent = t("appCopyright");
+  document.querySelector("#language-support").textContent = t("supportedLanguages");
+  const sunCredit = document.querySelector("#sun-credit");
+  sunCredit.textContent = t("sunCredit");
+  sunCredit.title = t("sunCreditTitle");
 }
 
 function setLoading(isLoading) {
   submitButton.disabled = isLoading;
-  submitButton.textContent = isLoading ? "Loading..." : "Get Weather";
+  submitButton.textContent = isLoading ? t("loading") : t("getWeather");
   form.setAttribute("aria-busy", String(isLoading));
 }
 
 function setMotionPaused(isPaused) {
   document.body.classList.toggle("motion-paused", isPaused);
   motionToggle.setAttribute("aria-pressed", String(isPaused));
-  motionToggle.textContent = isPaused ? "Play motion" : "Pause motion";
+  motionToggle.textContent = isPaused ? t("playMotion") : t("pauseMotion");
 }
 
 function applyMotionPreference(prefersReducedMotion) {
   if (prefersReducedMotion) {
     setMotionPaused(true);
-    motionToggle.textContent = "Motion reduced";
+    motionToggle.textContent = t("motionReduced");
     motionToggle.disabled = true;
     return;
   }
@@ -104,6 +144,13 @@ function createLabeledParagraph(label, value) {
   return paragraph;
 }
 
+function localizedCondition(current) {
+  return current[`lang_${locale}`]?.[0]?.value
+    ?? current.lang_xx?.[0]?.value
+    ?? current.weatherDesc?.[0]?.value
+    ?? t("conditionsUnavailable");
+}
+
 function renderCurrentConditions(city, area, current, isSecret) {
   const heading = document.createElement("h2");
   heading.id = "cityName";
@@ -113,12 +160,12 @@ function renderCurrentConditions(city, area, current, isSecret) {
 
   const countryName = area.country?.[0]?.value ?? "";
   const regionName = area.region?.[0]?.value ?? "";
-  const areaName = displayAreaName(area.areaName?.[0]?.value ?? "Unknown", countryName);
-  const areaParagraph = createLabeledParagraph("Area:", areaName);
+  const areaName = displayAreaName(area.areaName?.[0]?.value ?? t("unknown"), countryName);
+  const areaParagraph = createLabeledParagraph(t("area"), areaName);
   areaParagraph.className = "location-line area-line";
   const locationParagraphs = [areaParagraph];
   if (regionName) {
-    const regionParagraph = createLabeledParagraph("Region:", regionName);
+    const regionParagraph = createLabeledParagraph(t("region"), regionName);
     regionParagraph.className = "location-line region-line";
     locationParagraphs.push(regionParagraph);
   }
@@ -131,7 +178,7 @@ function renderCurrentConditions(city, area, current, isSecret) {
   const description = document.createElement("strong");
   description.className = "current-condition";
   description.style.margin = "0";
-  description.textContent = current.weatherDesc?.[0]?.value ?? "Conditions unavailable";
+  description.textContent = localizedCondition(current);
 
   const temperatureGroup = document.createElement("span");
   temperatureGroup.className = "current-reading";
@@ -143,20 +190,16 @@ function renderCurrentConditions(city, area, current, isSecret) {
   timeGroup.className = "observed-reading";
   const observedAt = document.createElement("strong");
   observedAt.className = "observed-time";
-  observedAt.textContent = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-  temperatureGroup.append(document.createTextNode("Feels like "), feelsLike);
-  timeGroup.append(document.createTextNode("Observed "), observedAt);
+  observedAt.textContent = timeFormatter.format(new Date());
+  temperatureGroup.append(document.createTextNode(`${t("feelsLike")} `), feelsLike);
+  timeGroup.append(document.createTextNode(`${t("observed")} `), observedAt);
   conditionParagraph.append(description, temperatureGroup, timeGroup);
 
   const unitButton = document.createElement("button");
   unitButton.type = "button";
   unitButton.className = "degreeCToF";
   unitButton.setAttribute("aria-pressed", String(state.unit === "C"));
-  unitButton.textContent = state.unit === "F" ? "Change To °C?" : "Change To °F?";
+  unitButton.textContent = t("changeUnit", { unit: state.unit === "F" ? "C" : "F" });
 
   cityInfo.replaceChildren(
     heading,
@@ -175,17 +218,17 @@ function renderForecast(weatherDays) {
 
     averages[index].replaceChildren();
     const averageLabel = document.createElement("strong");
-    averageLabel.textContent = "Avg Temp:";
+    averageLabel.textContent = t("averageTemperature");
     averages[index].append(averageLabel, document.createTextNode(` ${temperature(weatherValue(day, "avgtemp"))}`));
 
     maximums[index].replaceChildren();
     const maximumLabel = document.createElement("strong");
-    maximumLabel.textContent = "Max Temp:";
+    maximumLabel.textContent = t("maximumTemperature");
     maximums[index].append(maximumLabel, document.createTextNode(` ${temperature(weatherValue(day, "maxtemp"))}`));
 
     minimums[index].replaceChildren();
     const minimumLabel = document.createElement("strong");
-    minimumLabel.textContent = "Min Temp:";
+    minimumLabel.textContent = t("minimumTemperature");
     minimums[index].append(minimumLabel, document.createTextNode(` ${temperature(weatherValue(day, "mintemp"))}`));
 
   });
@@ -336,7 +379,9 @@ function renderWeather(city, weather, { isSecret = false } = {}) {
 }
 
 async function fetchWeather(city) {
-  const response = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
+  const response = await fetch(
+    `https://wttr.in/${encodeURIComponent(city)}?format=j1&lang=${locale}`,
+  );
   if (response.status === 404) {
     throw new WeatherError("not-found", `No weather was found for ${city}.`);
   }
@@ -351,12 +396,12 @@ form.addEventListener("submit", async (event) => {
   const { city, isSecret } = parseCityInput(cityInput.value);
 
   if (!city) {
-    showMessage("Enter a city to check its weather.", { stateName: "empty" });
+    showMessage(t("emptyPrompt"), { stateName: "empty" });
     cityInput.focus();
     return;
   }
 
-  showMessage(`Loading weather for ${city}…`, { stateName: "loading" });
+  showMessage(t("loadingWeather", { city }), { stateName: "loading" });
   setLoading(true);
 
   try {
@@ -366,17 +411,17 @@ form.addEventListener("submit", async (event) => {
   } catch (error) {
     console.error(error);
     if (error instanceof WeatherError && error.kind === "not-found") {
-      showMessage(`We couldn't find weather for “${city}.” Check the spelling and try again.`, {
+      showMessage(t("notFound", { city }), {
         isError: true,
         stateName: "error",
       });
     } else if (error instanceof WeatherError && error.kind === "incomplete") {
-      showMessage(`Weather details for “${city}” are incomplete. Please try again later.`, {
+      showMessage(t("incomplete", { city }), {
         isError: true,
         stateName: "error",
       });
     } else {
-      showMessage("The weather service is unavailable right now. Please try again.", {
+      showMessage(t("serviceUnavailable"), {
         isError: true,
         stateName: "error",
       });
@@ -409,4 +454,5 @@ motionToggle.addEventListener("click", () => {
 });
 
 reducedMotion.addEventListener("change", (event) => applyMotionPreference(event.matches));
+applyStaticTranslations();
 applyMotionPreference(reducedMotion.matches);

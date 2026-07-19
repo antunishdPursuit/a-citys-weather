@@ -13,8 +13,8 @@
 <body>
     <header>
         <div class="site-intro">
-            <h1>A City's Weather</h1>
-            <p>Search for current conditions and a three-day forecast.</p>
+            <h1 id="site-title">A City's Weather</h1>
+            <p id="site-subtitle">Search for current conditions and a three-day forecast.</p>
         </div>
         <form id="weatherCity" aria-label="Weather search">
             <input id="city" type="text" placeholder="Enter a City" aria-label="City" autocomplete="off">
@@ -78,7 +78,7 @@
         </aside>
     </div>
     <footer class="weather-footer">
-        <p>Connect with me</p>
+        <p id="connect-label">Connect with me</p>
         <div class="footer-links">
             <a href="https://www.linkedin.com/in/dennys-antunish/" target="_blank" rel="noopener noreferrer" class="footer-link">
                 <span class="footer-icon">🌤️</span> LinkedIn
@@ -87,11 +87,12 @@
                 <span class="footer-icon">☁️</span> GitHub
             </a>
             <a href="https://sites.google.com/view/antunish/projects" target="_blank" rel="noopener noreferrer" class="footer-link">
-                <span class="footer-icon">❄️</span> Portfolio
+                <span class="footer-icon">❄️</span> <span id="portfolio-label">Portfolio</span>
             </a>
         </div>
-        <p>Weather App © 2024</p>
-        <a href="https://www.flaticon.com/free-icons/sun" title="sun icons">Sun icons created by Freepik - Flaticon</a>
+        <p id="app-copyright">Weather App © 2024</p>
+        <p id="language-support">Languages supported: English, Spanish, and Vietnamese.</p>
+        <a id="sun-credit" href="https://www.flaticon.com/free-icons/sun" title="sun icons">Sun icons created by Freepik - Flaticon</a>
     </footer>
 </body>
 </html>

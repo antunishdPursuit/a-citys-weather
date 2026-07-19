@@ -1,4 +1,15 @@
 describe("A City's Weather", () => {
+  function visitWithLanguages(languages) {
+    cy.visit("/", {
+      onBeforeLoad(window) {
+        Object.defineProperty(window.navigator, "languages", {
+          configurable: true,
+          value: languages,
+        });
+      },
+    });
+  }
+
   beforeEach(() => {
     cy.visit("/");
   });
@@ -21,7 +32,7 @@ describe("A City's Weather", () => {
   });
 
   it("renders the original panels and weather artwork", () => {
-    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("melbourneWeather");
 
@@ -41,7 +52,7 @@ describe("A City's Weather", () => {
   });
 
   it("toggles units and reuses cached search history", () => {
-    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("melbourneWeather");
 
@@ -56,7 +67,7 @@ describe("A City's Weather", () => {
   });
 
   it("keeps an ordinary Ho Chi Minh City search in the normal weather state", () => {
-    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("cityWeather");
 
@@ -72,7 +83,7 @@ describe("A City's Weather", () => {
       weather.nearest_area[0].areaName[0].value = "Ã\u0090A Kao";
       weather.nearest_area[0].country[0].value = "Vietnam";
       weather.nearest_area[0].region[0].value = "";
-      cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1", weather).as(
+      cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1&lang=en", weather).as(
         "encodedAreaWeather",
       );
     });
@@ -86,7 +97,7 @@ describe("A City's Weather", () => {
   });
 
   it("activates the protected city state only for the exact secret input", () => {
-    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("secretWeather");
 
@@ -103,7 +114,7 @@ describe("A City's Weather", () => {
   });
 
   it("requires the secret input's exact internal spacing", () => {
-    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City%2C%20O?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City%2C%20O?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("ordinaryWeather");
 
@@ -115,7 +126,7 @@ describe("A City's Weather", () => {
   });
 
   it("uses one coherent visual theme for the returned condition", () => {
-    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("themedWeather");
 
@@ -132,7 +143,7 @@ describe("A City's Weather", () => {
   });
 
   it("distinguishes a city that cannot be found", () => {
-    cy.intercept("GET", "https://wttr.in/Nowhere?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Nowhere?format=j1&lang=en", {
       statusCode: 404,
       body: {},
     }).as("missingWeather");
@@ -148,7 +159,7 @@ describe("A City's Weather", () => {
   });
 
   it("does not save an incomplete weather response to history", () => {
-    cy.intercept("GET", "https://wttr.in/Incomplete?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Incomplete?format=j1&lang=en", {
       statusCode: 200,
       body: {},
     }).as("incompleteWeather");
@@ -164,7 +175,7 @@ describe("A City's Weather", () => {
   });
 
   it("distinguishes a weather service failure", () => {
-    cy.intercept("GET", "https://wttr.in/Nowhere?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Nowhere?format=j1&lang=en", {
       statusCode: 500,
       body: {},
     }).as("failedWeather");
@@ -191,7 +202,7 @@ describe("A City's Weather", () => {
 
   it("keeps the desktop weather composition intact", () => {
     cy.viewport(1440, 900);
-    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("desktopWeather");
 
@@ -210,9 +221,80 @@ describe("A City's Weather", () => {
     cy.get(".weather-footer").should("have.css", "position", "relative");
   });
 
+  it("uses Spanish browser preferences for the interface, weather request, and date", () => {
+    cy.viewport(390, 844);
+    visitWithLanguages(["es-MX", "en-US"]);
+
+    cy.fixture("melbourne.json").then((weather) => {
+      weather.current_condition[0].lang_es = [{ value: "Parcialmente nublado" }];
+      cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=es", weather).as(
+        "spanishWeather",
+      );
+    });
+
+    cy.get("html").should("have.attr", "lang", "es");
+    cy.get("h1").should("have.text", "El clima de una ciudad");
+    cy.get("#city").should("have.attr", "placeholder", "Ingresa una ciudad");
+    cy.get("#weather_button").should("have.text", "Ver el clima");
+    cy.get("#language-support").should(
+      "have.text",
+      "Idiomas disponibles: inglés, español y vietnamita.",
+    );
+
+    cy.get("#city").type("Melbourne").type("{enter}");
+    cy.wait("@spanishWeather");
+    cy.get(".current-condition").should("have.text", "Parcialmente nublado");
+    cy.get("#cityInfo").should("contain.text", "Sensación térmica").and("contain.text", "Observado");
+    cy.window().then((window) => {
+      const expectedDate = new window.Intl.DateTimeFormat("es").format(new window.Date());
+      cy.get("#today .days").should("have.text", expectedDate);
+      expect(window.document.documentElement.scrollWidth).to.be.at.most(window.innerWidth);
+    });
+  });
+
+  it("uses Vietnamese browser preferences and requests Vietnamese weather text", () => {
+    cy.viewport(390, 844);
+    visitWithLanguages(["vi-VN", "en-US"]);
+
+    cy.fixture("melbourne.json").then((weather) => {
+      weather.current_condition[0].lang_vi = [{ value: "Có mây" }];
+      cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=vi", weather).as(
+        "vietnameseWeather",
+      );
+    });
+
+    cy.get("html").should("have.attr", "lang", "vi");
+    cy.get("h1").should("have.text", "Thời tiết của một thành phố");
+    cy.get("#weather_button").should("have.text", "Xem thời tiết");
+    cy.get("#language-support").should(
+      "have.text",
+      "Ngôn ngữ được hỗ trợ: tiếng Anh, tiếng Tây Ban Nha và tiếng Việt.",
+    );
+
+    cy.get("#city").type("Melbourne").type("{enter}");
+    cy.wait("@vietnameseWeather");
+    cy.get(".current-condition").should("have.text", "Có mây");
+    cy.get("#cityInfo").should("contain.text", "Cảm giác như").and("contain.text", "Quan sát lúc");
+    cy.window().then((window) => {
+      expect(window.document.documentElement.scrollWidth).to.be.at.most(window.innerWidth);
+    });
+  });
+
+  it("falls back to English when the browser language is unsupported", () => {
+    visitWithLanguages(["fr-CA"]);
+
+    cy.get("html").should("have.attr", "lang", "en");
+    cy.get("h1").should("have.text", "A City's Weather");
+    cy.get("#weather_button").should("have.text", "Get Weather");
+    cy.get("#language-support").should(
+      "have.text",
+      "Languages supported: English, Spanish, and Vietnamese.",
+    );
+  });
+
   it("keeps the footer below results on a short desktop viewport", () => {
     cy.viewport(1440, 600);
-    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("shortViewportWeather");
 
@@ -237,7 +319,7 @@ describe("A City's Weather", () => {
 
   it("stacks the weather experience cleanly on phones", () => {
     cy.viewport(390, 844);
-    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=en", {
       fixture: "melbourne.json",
     }).as("mobileWeather");
 
