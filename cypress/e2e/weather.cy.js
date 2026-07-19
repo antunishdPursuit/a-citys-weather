@@ -99,9 +99,9 @@ describe("A City's Weather", () => {
     cy.get("#city").type("Melbourne").type("{enter}");
     cy.wait("@themedWeather");
 
-    cy.get("body").should("have.attr", "data-weather", "cloud");
+    cy.get("body").should("have.attr", "data-weather", "partly-cloudy");
     cy.get(".weather-emoji").should("have.length", 5).each(($emoji) => {
-      expect($emoji.text()).to.equal("☁️");
+      expect($emoji.text()).to.equal("🌤️");
     });
     cy.get(".cloud").each(($cloud) => {
       expect($cloud.css("background-image")).to.include("partly-cloudy.png");

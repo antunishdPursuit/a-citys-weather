@@ -229,6 +229,9 @@ function weatherTheme(description) {
   if (condition.includes("fog") || condition.includes("mist")) {
     return { name: "fog", symbol: "🌫️" };
   }
+  if (condition.includes("partly cloudy")) {
+    return { name: "partly-cloudy", symbol: "🌤️" };
+  }
   if (condition.includes("cloud") || condition.includes("overcast")) {
     return { name: "cloud", symbol: "☁️" };
   }

@@ -66,6 +66,10 @@ body[data-weather="cloud"] {
     --weather-background: linear-gradient(180deg, #b8dceb 0%, #86bed6 100%);
 }
 
+body[data-weather="partly-cloudy"] {
+    --weather-background: linear-gradient(180deg, #a9def1 0%, #8ccde7 75%, #e8f4c7 100%);
+}
+
 body[data-weather="rain"] {
     --weather-background: linear-gradient(180deg, #91bfd4 0%, #5f99b8 100%);
 }
