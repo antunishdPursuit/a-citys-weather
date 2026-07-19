@@ -1,3 +1,4 @@
+const mainPage = document.querySelector(".mainPage");
 const form = document.querySelector("#weatherCity");
 const cityInput = document.querySelector("#city");
 const submitButton = document.querySelector("#weather_button");
@@ -262,6 +263,7 @@ function renderHistory() {
   searchHistory.replaceChildren();
   emptyHistory.classList.toggle("hidden", state.weatherByCity.size > 0);
   historyPanel.classList.toggle("hidden", state.weatherByCity.size === 0);
+  mainPage.classList.toggle("has-history", state.weatherByCity.size > 0);
 
   state.weatherByCity.forEach((weather, city) => {
     const item = document.createElement("li");

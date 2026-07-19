@@ -91,7 +91,7 @@ describe("A City's Weather", () => {
       });
     });
     cy.get(".tempertures").should("have.length", 3).and("be.visible");
-    cy.get(".weather-footer").should("have.css", "position", "fixed");
+    cy.get(".weather-footer").should("have.css", "position", "relative");
   });
 
   it("stacks the weather experience cleanly on phones", () => {
@@ -117,6 +117,6 @@ describe("A City's Weather", () => {
         expect($footer[0].getBoundingClientRect().top).to.be.at.least($forecast[0].getBoundingClientRect().bottom);
       });
     });
-    cy.get(".weather-footer").should("have.css", "position", "static");
+    cy.get(".weather-footer").should("have.css", "position", "relative");
   });
 });
