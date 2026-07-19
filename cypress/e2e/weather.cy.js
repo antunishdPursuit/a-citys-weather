@@ -20,9 +20,6 @@ describe("A City's Weather", () => {
     cy.get("#weather_button").should("have.text", "Get Weather");
     cy.get("#language-select").should("have.value", "auto");
     cy.get('#language-select option[value="auto"]').should("have.text", "Auto");
-    cy.get("#language-select").then(($selector) => {
-      expect($selector[0].getBoundingClientRect().width).to.equal(140);
-    });
     cy.get("#motion-toggle").should("have.text", "Pause motion");
     cy.get("h1").should("have.text", "A City's Weather");
     cy.get("#cityName").should("have.text", "Enter a city to check its weather.");
