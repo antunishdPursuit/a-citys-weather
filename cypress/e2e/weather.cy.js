@@ -8,8 +8,10 @@ describe("A City's Weather", () => {
     cy.get("#city").should("have.attr", "placeholder", "Enter a City");
     cy.get("#weather_button").should("have.text", "Get Weather");
     cy.get("#motion-toggle").should("have.text", "Pause motion");
+    cy.get("h1").should("have.text", "A City's Weather");
+    cy.get("#cityName").should("have.text", "Enter a city to check its weather.");
     cy.get(".cloud").should("have.length", 6);
-    cy.get("#removed").should("contain.text", "No previous searches");
+    cy.get("#historyPanel").should("not.be.visible");
   });
 
   it("renders the original panels and weather artwork", () => {
@@ -45,7 +47,7 @@ describe("A City's Weather", () => {
     cy.get("#cityName").should("have.text", "Melbourne");
   });
 
-  it("shows the original invalid-city state on failure", () => {
+  it("distinguishes a weather service failure", () => {
     cy.intercept("GET", "https://wttr.in/Nowhere?format=j1", {
       statusCode: 500,
       body: {},
@@ -54,7 +56,7 @@ describe("A City's Weather", () => {
     cy.get("#city").type("Nowhere").type("{enter}");
     cy.wait("@failedWeather");
 
-    cy.get("#cityName").should("have.text", "City Invalid");
+    cy.get("#cityName").should("have.text", "The weather service is unavailable right now. Please try again.");
     cy.get("#weather_button").should("not.be.disabled").and("have.text", "Get Weather");
     cy.get("#temps").should("not.be.visible");
   });

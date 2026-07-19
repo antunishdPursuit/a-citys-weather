@@ -1,10 +1,10 @@
-const mainPage = document.querySelector(".mainPage");
 const form = document.querySelector("#weatherCity");
 const cityInput = document.querySelector("#city");
 const submitButton = document.querySelector("#weather_button");
 const motionToggle = document.querySelector("#motion-toggle");
 const cityInfo = document.querySelector("#cityInfo");
 const temperatures = document.querySelector("#temps");
+const historyPanel = document.querySelector("#historyPanel");
 const emptyHistory = document.querySelector("#removed");
 const searchHistory = document.querySelector("#list");
 const cloudContainer = document.querySelector(".cloud-container");
@@ -23,6 +23,14 @@ const state = {
 };
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+class WeatherError extends Error {
+  constructor(kind, message) {
+    super(message);
+    this.name = "WeatherError";
+    this.kind = kind;
+  }
+}
 
 function normalizeCity(value) {
   return value
@@ -71,11 +79,13 @@ function applyMotionPreference(prefersReducedMotion) {
   setMotionPaused(false);
 }
 
-function showMessage(message) {
+function showMessage(message, { isError = false } = {}) {
   const heading = document.createElement("h2");
   heading.id = "cityName";
   heading.textContent = message;
   cityInfo.replaceChildren(heading);
+  cityInfo.classList.toggle("error-state", isError);
+  cityInfo.setAttribute("role", isError ? "alert" : "status");
   temperatures.style.display = "none";
 }
 
@@ -251,6 +261,7 @@ async function updateWeatherBackground(weatherCode, city, description) {
 function renderHistory() {
   searchHistory.replaceChildren();
   emptyHistory.classList.toggle("hidden", state.weatherByCity.size > 0);
+  historyPanel.classList.toggle("hidden", state.weatherByCity.size === 0);
 
   state.weatherByCity.forEach((weather, city) => {
     const item = document.createElement("li");
@@ -278,11 +289,12 @@ function renderWeather(city, weather) {
   const weatherDays = weather.weather;
 
   if (!area || !current || !Array.isArray(weatherDays) || weatherDays.length < 3) {
-    throw new Error("The weather service returned incomplete data.");
+    throw new WeatherError("incomplete", "The weather service returned incomplete data.");
   }
 
   state.currentCity = city;
-  mainPage.style.opacity = "1";
+  cityInfo.classList.remove("error-state");
+  cityInfo.setAttribute("role", "status");
   renderCurrentConditions(city, area, current);
   renderForecast(weatherDays);
   renderHistory();
@@ -292,7 +304,12 @@ function renderWeather(city, weather) {
 
 async function fetchWeather(city) {
   const response = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
-  if (!response.ok) throw new Error(`Weather request failed with status ${response.status}.`);
+  if (response.status === 404) {
+    throw new WeatherError("not-found", `No weather was found for ${city}.`);
+  }
+  if (!response.ok) {
+    throw new WeatherError("service", `Weather request failed with status ${response.status}.`);
+  }
   return response.json();
 }
 
@@ -301,14 +318,12 @@ form.addEventListener("submit", async (event) => {
   const city = normalizeCity(cityInput.value);
 
   if (!city) {
-    mainPage.style.opacity = "1";
-    showMessage("Please enter a City");
+    showMessage("Enter a city to check its weather.");
     cityInput.focus();
     return;
   }
 
-  mainPage.style.opacity = "1";
-  showMessage(`Loading weather for ${city}...`);
+  showMessage(`Loading weather for ${city}…`);
   setLoading(true);
 
   try {
@@ -318,7 +333,19 @@ form.addEventListener("submit", async (event) => {
     cityInput.value = "";
   } catch (error) {
     console.error(error);
-    showMessage("City Invalid");
+    if (error instanceof WeatherError && error.kind === "not-found") {
+      showMessage(`We couldn't find weather for “${city}.” Check the spelling and try again.`, {
+        isError: true,
+      });
+    } else if (error instanceof WeatherError && error.kind === "incomplete") {
+      showMessage(`Weather details for “${city}” are incomplete. Please try again later.`, {
+        isError: true,
+      });
+    } else {
+      showMessage("The weather service is unavailable right now. Please try again.", {
+        isError: true,
+      });
+    }
   } finally {
     setLoading(false);
   }

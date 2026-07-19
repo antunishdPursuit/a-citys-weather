@@ -8,10 +8,14 @@
     <link id="main-stylesheet" rel="preload" href="style.css" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="style.css"></noscript>
     <script defer type="module" src="main.js"></script>
-    <title>City Weather Info</title>
+    <title>A City's Weather</title>
 </head>
 <body>
     <header>
+        <div class="site-intro">
+            <h1>A City's Weather</h1>
+            <p>Search for current conditions and a three-day forecast.</p>
+        </div>
         <form id="weatherCity" aria-label="Weather search">
             <input id="city" type="text" placeholder="Enter a City" aria-label="City" autocomplete="off">
             <button id="weather_button" type="submit">Get Weather</button>
@@ -31,7 +35,7 @@
         <aside class="mainBoxes"></aside>
         <main class="mainBoxes">
             <article id="cityInfo" aria-live="polite">
-                <h2 id="cityName">Loading....</h2>
+                <h2 id="cityName">Enter a city to check its weather.</h2>
             </article>
 
             <aside id="temps" class="hidden">
@@ -68,9 +72,9 @@
             </aside>
         </main>
 
-        <aside class="mainBoxes">
-            <section>
-                <h4><strong>Previous Searches</strong></h4>
+        <aside id="historyPanel" class="mainBoxes hidden">
+            <section aria-labelledby="historyHeading">
+                <h4 id="historyHeading"><strong>Previous Searches</strong></h4>
                 <p id="removed">No previous searches</p>
                 <ul id="list"></ul>
             </section>
