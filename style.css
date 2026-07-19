@@ -214,9 +214,10 @@ header {
 }
 
 #language-select {
-    min-width: 145px;
+    width: auto;
+    min-width: 0;
     cursor: pointer;
-    padding: 11px 36px 11px 18px;
+    padding: 11px 22px 11px 16px;
     border: 1px solid var(--color-primary);
     border-radius: var(--radius-pill);
     color: var(--color-primary);
