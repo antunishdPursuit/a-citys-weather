@@ -650,6 +650,18 @@ section h4 {
     color: var(--color-later-start);
 }
 
+.weather-footer > a {
+    color: var(--color-text-inverse);
+}
+
+.weather-footer > a:hover {
+    color: var(--color-later-start);
+}
+
+.weather-footer a:focus-visible {
+    outline-color: var(--color-accent-sun);
+}
+
 .footer-icon {
     opacity: 0.8;
     font-size: 1.2em;

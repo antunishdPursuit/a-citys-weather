@@ -208,6 +208,13 @@ describe("A City's Weather", () => {
     });
   });
 
+  it("keeps footer links readable and visibly focused", () => {
+    cy.get('.weather-footer a[title="sun icons"]')
+      .should("have.css", "color", "rgb(240, 248, 255)")
+      .focus()
+      .should("have.css", "outline-color", "rgb(244, 185, 66)");
+  });
+
   it("stacks the weather experience cleanly on phones", () => {
     cy.viewport(390, 844);
     cy.intercept("GET", "https://wttr.in/Melbourne?format=j1", {
