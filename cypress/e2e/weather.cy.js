@@ -10,6 +10,9 @@ describe("A City's Weather", () => {
     cy.get("#motion-toggle").should("have.text", "Pause motion");
     cy.get("h1").should("have.text", "A City's Weather");
     cy.get("#cityName").should("have.text", "Enter a city to check its weather.");
+    cy.get("#cityInfo").should("have.attr", "data-state", "empty").then(($status) => {
+      expect($status[0].getBoundingClientRect().height).to.be.lessThan(90);
+    });
     cy.get(".cloud").should("have.length", 6);
     cy.get("#historyPanel").should("not.be.visible");
     cy.get("#weather_button").then(($button) => {

@@ -4,6 +4,7 @@
     --color-primary: #075985;
     --color-primary-hover: #064569;
     --color-border-strong: #0d75bd;
+    --color-footer-end: #0b6f9f;
     --color-surface: #e0f7fa;
     --color-surface-strong: #b3e5fc;
     --color-text-strong: #17324d;
@@ -252,18 +253,18 @@ header {
     background-size: contain;
     background-repeat: no-repeat;
     overflow: visible;
-    opacity: 0.8;
+    opacity: 0.68;
     animation: float linear infinite;
     will-change: transform;
 }
 
 /* Cloud variations */
-.cloud:nth-child(1) { width: 250px; height: 130px; top: 18%; left: -350px; animation-duration: 28s; animation-delay: -8s; }
-.cloud:nth-child(2) { width: 180px; height: 95px; top: 34%; left: -300px; animation-duration: 34s; animation-delay: -24s; }
-.cloud:nth-child(3) { width: 200px; height: 110px; top: 58%; left: -250px; animation-duration: 38s; animation-delay: -14s; }
-.cloud:nth-child(4) { width: 220px; height: 120px; top: 76%; left: -400px; animation-duration: 44s; animation-delay: -34s; }
-.cloud:nth-child(5) { width: 280px; height: 140px; top: 8%; left: -300px; animation-duration: 50s; animation-delay: -42s; }
-.cloud:nth-child(6) { width: 320px; height: 160px; top: 46%; left: -450px; animation-duration: 58s; animation-delay: -20s; }
+.cloud:nth-child(1) { width: 200px; height: 105px; top: 20%; left: -260px; animation-duration: 28s; animation-delay: -8s; }
+.cloud:nth-child(2) { width: 150px; height: 80px; top: 38%; left: -220px; animation-duration: 34s; animation-delay: -24s; }
+.cloud:nth-child(3) { width: 170px; height: 90px; top: 62%; left: -230px; animation-duration: 38s; animation-delay: -14s; }
+.cloud:nth-child(4) { width: 180px; height: 95px; top: 78%; left: -280px; animation-duration: 44s; animation-delay: -34s; }
+.cloud:nth-child(5) { width: 210px; height: 110px; top: 12%; left: -250px; animation-duration: 50s; animation-delay: -42s; }
+.cloud:nth-child(6) { width: 230px; height: 120px; top: 50%; left: -300px; animation-duration: 58s; animation-delay: -20s; }
 
 .weather-emoji {
     position: absolute;
@@ -366,6 +367,24 @@ body.motion-paused .weather-emoji {
 
 #cityInfo.error-state #cityName {
     color: var(--color-error);
+}
+
+#cityInfo[data-state="empty"],
+#cityInfo[data-state="loading"] {
+    width: min(34rem, calc(100% - 2rem));
+    margin: var(--space-4) auto;
+    padding: var(--space-3) var(--space-6);
+    box-sizing: border-box;
+    border-width: 1px;
+    box-shadow: var(--shadow-sm);
+    background: rgba(224, 247, 250, 0.78);
+}
+
+#cityInfo[data-state="empty"] #cityName,
+#cityInfo[data-state="loading"] #cityName {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.35;
 }
 
 #cityName {
@@ -599,7 +618,7 @@ section h4 {
     color: var(--color-text-inverse);
     box-sizing: border-box;
     border-top: 2px solid var(--color-primary);
-    background: linear-gradient(to right, var(--color-border-strong), var(--color-primary));
+    background: linear-gradient(to right, var(--color-border-strong), var(--color-footer-end));
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 

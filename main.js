@@ -82,11 +82,12 @@ function applyMotionPreference(prefersReducedMotion) {
   setMotionPaused(false);
 }
 
-function showMessage(message, { isError = false } = {}) {
+function showMessage(message, { isError = false, stateName = "status" } = {}) {
   const heading = document.createElement("h2");
   heading.id = "cityName";
   heading.textContent = message;
   cityInfo.replaceChildren(heading);
+  cityInfo.dataset.state = stateName;
   cityInfo.classList.toggle("error-state", isError);
   cityInfo.setAttribute("role", isError ? "alert" : "status");
   temperatures.style.display = "none";
@@ -319,6 +320,7 @@ function renderWeather(city, weather, { isSecret = false } = {}) {
   state.currentCity = city;
   state.secretActive = isSecret;
   state.weatherByCity.set(city, weather);
+  cityInfo.dataset.state = "success";
   cityInfo.classList.remove("error-state");
   cityInfo.setAttribute("role", "status");
   renderCurrentConditions(city, area, current, isSecret);
@@ -348,12 +350,12 @@ form.addEventListener("submit", async (event) => {
   const { city, isSecret } = parseCityInput(cityInput.value);
 
   if (!city) {
-    showMessage("Enter a city to check its weather.");
+    showMessage("Enter a city to check its weather.", { stateName: "empty" });
     cityInput.focus();
     return;
   }
 
-  showMessage(`Loading weather for ${city}…`);
+  showMessage(`Loading weather for ${city}…`, { stateName: "loading" });
   setLoading(true);
 
   try {
@@ -365,14 +367,17 @@ form.addEventListener("submit", async (event) => {
     if (error instanceof WeatherError && error.kind === "not-found") {
       showMessage(`We couldn't find weather for “${city}.” Check the spelling and try again.`, {
         isError: true,
+        stateName: "error",
       });
     } else if (error instanceof WeatherError && error.kind === "incomplete") {
       showMessage(`Weather details for “${city}” are incomplete. Please try again later.`, {
         isError: true,
+        stateName: "error",
       });
     } else {
       showMessage("The weather service is unavailable right now. Please try again.", {
         isError: true,
+        stateName: "error",
       });
     }
   } finally {
