@@ -47,6 +47,35 @@ describe("A City's Weather", () => {
     cy.get("#cityName").should("have.text", "Melbourne");
   });
 
+  it("keeps an ordinary Ho Chi Minh City search in the normal weather state", () => {
+    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1", {
+      fixture: "melbourne.json",
+    }).as("cityWeather");
+
+    cy.get("#city").type("ho chi minh city").type("{enter}");
+    cy.wait("@cityWeather");
+
+    cy.get("#cityName").should("have.text", "Ho Chi Minh City");
+    cy.get(".surprise-heart").should("not.exist");
+  });
+
+  it("activates the protected city state only for the exact secret input", () => {
+    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1", {
+      fixture: "melbourne.json",
+    }).as("secretWeather");
+
+    cy.get("#city").type("hO cHi MiNh CiTy, o").type("{enter}");
+    cy.wait("@secretWeather");
+
+    cy.get("#cityName").should("have.text", "Love U");
+    cy.get(".surprise-heart").should("have.length", 6);
+    cy.get("#list").should("contain.text", "Ho Chi Minh City").and("not.contain.text", ", O");
+
+    cy.get(".previousCity").click();
+    cy.get("#cityName").should("have.text", "Ho Chi Minh City");
+    cy.get(".surprise-heart").should("not.exist");
+  });
+
   it("distinguishes a weather service failure", () => {
     cy.intercept("GET", "https://wttr.in/Nowhere?format=j1", {
       statusCode: 500,

@@ -15,12 +15,14 @@ const averages = document.querySelectorAll(".avg");
 const maximums = document.querySelectorAll(".max");
 const minimums = document.querySelectorAll(".min");
 const conditions = document.querySelectorAll(".condition");
+const SECRET_INPUT = "ho chi minh city, o";
 
 const state = {
   unit: "F",
   currentCity: null,
   weatherByCity: new Map(),
   weatherIcons: null,
+  secretActive: false,
 };
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -102,11 +104,11 @@ function createLabeledParagraph(label, value) {
   return paragraph;
 }
 
-function renderCurrentConditions(city, area, current) {
+function renderCurrentConditions(city, area, current, isSecret) {
   const heading = document.createElement("h2");
   heading.id = "cityName";
   const headingText = document.createElement("strong");
-  headingText.textContent = city === "Ho Chi Minh City" ? "Love U" : city;
+  headingText.textContent = isSecret ? "Love U" : city;
   heading.append(headingText);
 
   const areaParagraph = createLabeledParagraph("Area:", area.areaName?.[0]?.value ?? "Unknown");
@@ -233,6 +235,15 @@ function weatherTheme(description) {
   return { name: "clear", symbol: "☀️" };
 }
 
+function parseCityInput(value) {
+  const trimmedValue = value.trim();
+  const isSecret = trimmedValue.toLowerCase() === SECRET_INPUT;
+  return {
+    city: isSecret ? "Ho Chi Minh City" : normalizeCity(trimmedValue),
+    isSecret,
+  };
+}
+
 function renderWeatherEmojis(description) {
   const theme = weatherTheme(description);
   document.body.dataset.weather = theme.name;
@@ -247,7 +258,7 @@ function renderWeatherEmojis(description) {
   });
 }
 
-async function updateWeatherBackground(weatherCode, city, description) {
+async function updateWeatherBackground(weatherCode, description, isSecret) {
   renderWeatherEmojis(description);
   try {
     if (!state.weatherIcons) {
@@ -260,7 +271,7 @@ async function updateWeatherBackground(weatherCode, city, description) {
       cloud.querySelectorAll(".surprise-heart").forEach((heart) => heart.remove());
       const conditionArtwork = state.weatherIcons[weatherCode] ?? "url('assets/cloud.webp')";
       cloud.style.backgroundImage = conditionArtwork;
-      if (city === "Ho Chi Minh City") cloud.append(createHeart());
+      if (isSecret) cloud.append(createHeart());
     });
   } catch (error) {
     console.error("Unable to update weather artwork.", error);
@@ -293,7 +304,7 @@ function renderHistory() {
   });
 }
 
-function renderWeather(city, weather) {
+function renderWeather(city, weather, { isSecret = false } = {}) {
   const area = weather.nearest_area?.[0];
   const current = weather.current_condition?.[0];
   const weatherDays = weather.weather;
@@ -303,13 +314,18 @@ function renderWeather(city, weather) {
   }
 
   state.currentCity = city;
+  state.secretActive = isSecret;
   cityInfo.classList.remove("error-state");
   cityInfo.setAttribute("role", "status");
-  renderCurrentConditions(city, area, current);
+  renderCurrentConditions(city, area, current, isSecret);
   renderForecast(weatherDays);
   renderHistory();
   temperatures.style.display = "flex";
-  void updateWeatherBackground(current.weatherCode, city, current.weatherDesc?.[0]?.value ?? "clear");
+  void updateWeatherBackground(
+    current.weatherCode,
+    current.weatherDesc?.[0]?.value ?? "clear",
+    isSecret,
+  );
 }
 
 async function fetchWeather(city) {
@@ -325,7 +341,7 @@ async function fetchWeather(city) {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const city = normalizeCity(cityInput.value);
+  const { city, isSecret } = parseCityInput(cityInput.value);
 
   if (!city) {
     showMessage("Enter a city to check its weather.");
@@ -339,7 +355,7 @@ form.addEventListener("submit", async (event) => {
   try {
     const weather = await fetchWeather(city);
     state.weatherByCity.set(city, weather);
-    renderWeather(city, weather);
+    renderWeather(city, weather, { isSecret });
     cityInput.value = "";
   } catch (error) {
     console.error(error);
@@ -367,7 +383,7 @@ cityInfo.addEventListener("click", (event) => {
 
   state.unit = state.unit === "F" ? "C" : "F";
   const weather = state.weatherByCity.get(state.currentCity);
-  if (weather) renderWeather(state.currentCity, weather);
+  if (weather) renderWeather(state.currentCity, weather, { isSecret: state.secretActive });
 });
 
 searchHistory.addEventListener("click", (event) => {
@@ -376,7 +392,7 @@ searchHistory.addEventListener("click", (event) => {
 
   event.preventDefault();
   const weather = state.weatherByCity.get(link.dataset.city);
-  if (weather) renderWeather(link.dataset.city, weather);
+  if (weather) renderWeather(link.dataset.city, weather, { isSecret: false });
 });
 
 motionToggle.addEventListener("click", () => {
