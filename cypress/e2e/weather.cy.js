@@ -18,6 +18,7 @@ describe("A City's Weather", () => {
     cy.get("#weatherCity").should("have.attr", "aria-label", "Weather search");
     cy.get("#city").should("have.attr", "placeholder", "Enter a City");
     cy.get("#weather_button").should("have.text", "Get Weather");
+    cy.get("#language-select").should("have.value", "auto");
     cy.get("#motion-toggle").should("have.text", "Pause motion");
     cy.get("h1").should("have.text", "A City's Weather");
     cy.get("#cityName").should("have.text", "Enter a city to check its weather.");
@@ -28,6 +29,14 @@ describe("A City's Weather", () => {
     cy.get("#historyPanel").should("not.be.visible");
     cy.get("#weather_button").then(($button) => {
       expect(getComputedStyle($button[0], "::after").content).to.equal("none");
+    });
+    cy.get("#weatherCity").find("input, button, select").then(($controls) => {
+      expect([...$controls].map((control) => control.id)).to.deep.equal([
+        "city",
+        "weather_button",
+        "language-select",
+        "motion-toggle",
+      ]);
     });
   });
 
@@ -236,6 +245,8 @@ describe("A City's Weather", () => {
     cy.get("h1").should("have.text", "El clima de una ciudad");
     cy.get("#city").should("have.attr", "placeholder", "Ingresa una ciudad");
     cy.get("#weather_button").should("have.text", "Ver el clima");
+    cy.get("#language-select").should("have.value", "auto");
+    cy.get('#language-select option[value="auto"]').should("have.text", "Automático (Navegador)");
     cy.get("#language-support").should(
       "have.text",
       "Idiomas disponibles: inglés, español y vietnamita.",
@@ -290,6 +301,65 @@ describe("A City's Weather", () => {
       "have.text",
       "Languages supported: English, Spanish, and Vietnamese.",
     );
+  });
+
+  it("remembers a manual language selection and can return to browser detection", () => {
+    cy.get("#language-select").select("es");
+
+    cy.get("html").should("have.attr", "lang", "es");
+    cy.get("#weather_button").should("have.text", "Ver el clima");
+    cy.window().then((window) => {
+      expect(window.localStorage.getItem("weather-language")).to.equal("es");
+    });
+
+    cy.reload();
+    cy.get("#language-select").should("have.value", "es");
+    cy.get("html").should("have.attr", "lang", "es");
+
+    cy.get("#language-select").select("auto");
+    cy.get("#language-select").should("have.value", "auto");
+    cy.get("html").should("have.attr", "lang", "en");
+    cy.get("#weather_button").should("have.text", "Get Weather");
+  });
+
+  it("refetches the current city when a manual language changes", () => {
+    cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=en", {
+      fixture: "melbourne.json",
+    }).as("englishWeather");
+
+    cy.fixture("melbourne.json").then((weather) => {
+      weather.current_condition[0].lang_es = [{ value: "Parcialmente nublado" }];
+      cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=es", weather).as(
+        "selectedSpanishWeather",
+      );
+    });
+
+    cy.get("#city").type("Melbourne").type("{enter}");
+    cy.wait("@englishWeather");
+    cy.get("#language-select").select("es");
+    cy.wait("@selectedSpanishWeather");
+
+    cy.get("#cityName").should("have.text", "Melbourne");
+    cy.get(".current-condition").should("have.text", "Parcialmente nublado");
+    cy.get("#historyPanel").should("contain.text", "Melbourne");
+  });
+
+  it("preserves the hidden city state when the language changes", () => {
+    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1&lang=en", {
+      fixture: "melbourne.json",
+    }).as("englishSecretWeather");
+    cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1&lang=vi", {
+      fixture: "melbourne.json",
+    }).as("vietnameseSecretWeather");
+
+    cy.get("#city").type("Ho Chi Minh City, O").type("{enter}");
+    cy.wait("@englishSecretWeather");
+    cy.get("#language-select").select("vi");
+    cy.wait("@vietnameseSecretWeather");
+
+    cy.get("#cityName").should("have.text", "Love U");
+    cy.get(".surprise-heart").should("have.length", 6);
+    cy.get("#list").should("contain.text", "Ho Chi Minh City").and("not.contain.text", ", O");
   });
 
   it("keeps the footer below results on a short desktop viewport", () => {

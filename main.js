@@ -1,9 +1,10 @@
-import { resolveLocale, translate } from "./localization.js";
+import { resolveLocale, SUPPORTED_LOCALES, translate } from "./localization.js";
 
 const mainPage = document.querySelector(".mainPage");
 const form = document.querySelector("#weatherCity");
 const cityInput = document.querySelector("#city");
 const submitButton = document.querySelector("#weather_button");
+const languageSelect = document.querySelector("#language-select");
 const motionToggle = document.querySelector("#motion-toggle");
 const cityInfo = document.querySelector("#cityInfo");
 const temperatures = document.querySelector("#temps");
@@ -17,26 +18,56 @@ const averages = document.querySelectorAll(".avg");
 const maximums = document.querySelectorAll(".max");
 const minimums = document.querySelectorAll(".min");
 const SECRET_INPUT = "ho chi minh city, o";
-const preferredLanguages = navigator.languages?.length
-  ? navigator.languages
-  : [navigator.language];
-const locale = resolveLocale(preferredLanguages);
-const t = (key, replacements) => translate(locale, key, replacements);
-const dateFormatter = new Intl.DateTimeFormat(locale);
-const timeFormatter = new Intl.DateTimeFormat(locale, {
-  hour: "numeric",
-  minute: "2-digit",
-});
-const numberFormatter = new Intl.NumberFormat(locale);
+const LANGUAGE_STORAGE_KEY = "weather-language";
+
+function browserLocale() {
+  const preferredLanguages = navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language];
+  return resolveLocale(preferredLanguages);
+}
+
+function storedLanguagePreference() {
+  try {
+    const storedPreference = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (storedPreference === "auto" || SUPPORTED_LOCALES.includes(storedPreference)) {
+      return storedPreference;
+    }
+  } catch (error) {
+    console.warn("Unable to read the saved language preference.", error);
+  }
+  return "auto";
+}
+
+const initialLanguagePreference = storedLanguagePreference();
 
 const state = {
-  locale,
+  locale: initialLanguagePreference === "auto"
+    ? browserLocale()
+    : initialLanguagePreference,
+  languagePreference: initialLanguagePreference,
   unit: "F",
   currentCity: null,
   weatherByCity: new Map(),
   weatherIcons: null,
   secretActive: false,
 };
+
+const t = (key, replacements) => translate(state.locale, key, replacements);
+let dateFormatter;
+let timeFormatter;
+let numberFormatter;
+
+function updateFormatters() {
+  dateFormatter = new Intl.DateTimeFormat(state.locale);
+  timeFormatter = new Intl.DateTimeFormat(state.locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  numberFormatter = new Intl.NumberFormat(state.locale);
+}
+
+updateFormatters();
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -76,7 +107,7 @@ function forecastDate(index) {
 }
 
 function applyStaticTranslations() {
-  document.documentElement.lang = locale;
+  document.documentElement.lang = state.locale;
   document.title = t("pageTitle");
   document.querySelector("#site-title").textContent = t("pageTitle");
   document.querySelector("#site-subtitle").textContent = t("subtitle");
@@ -84,8 +115,17 @@ function applyStaticTranslations() {
   cityInput.placeholder = t("cityPlaceholder");
   cityInput.setAttribute("aria-label", t("cityLabel"));
   submitButton.textContent = t("getWeather");
-  motionToggle.textContent = t("pauseMotion");
-  document.querySelector("#cityName").textContent = t("emptyPrompt");
+  document.querySelector("#language-label").textContent = t("languageLabel");
+  languageSelect.querySelector('option[value="auto"]').textContent = t("automaticLanguage");
+  languageSelect.value = state.languagePreference;
+  motionToggle.textContent = reducedMotion.matches
+    ? t("motionReduced")
+    : document.body.classList.contains("motion-paused")
+      ? t("playMotion")
+      : t("pauseMotion");
+  if (cityInfo.dataset.state === "empty") {
+    document.querySelector("#cityName").textContent = t("emptyPrompt");
+  }
   document.querySelector("#historyHeading strong").textContent = t("previousSearches");
   emptyHistory.textContent = t("noPreviousSearches");
   document.querySelector("#app-copyright").textContent = t("appCopyright");
@@ -97,6 +137,7 @@ function applyStaticTranslations() {
 
 function setLoading(isLoading) {
   submitButton.disabled = isLoading;
+  languageSelect.disabled = isLoading;
   submitButton.textContent = isLoading ? t("loading") : t("getWeather");
   form.setAttribute("aria-busy", String(isLoading));
 }
@@ -143,7 +184,7 @@ function createLabeledParagraph(label, value) {
 }
 
 function localizedCondition(current) {
-  return current[`lang_${locale}`]?.[0]?.value
+  return current[`lang_${state.locale}`]?.[0]?.value
     ?? current.lang_xx?.[0]?.value
     ?? current.weatherDesc?.[0]?.value
     ?? t("conditionsUnavailable");
@@ -324,13 +365,28 @@ async function updateWeatherBackground(weatherCode, description, isSecret) {
   }
 }
 
+function cacheWeather(city, weather) {
+  const localizedWeather = state.weatherByCity.get(city) ?? new Map();
+  localizedWeather.set(state.locale, weather);
+  state.weatherByCity.set(city, localizedWeather);
+}
+
+function cachedWeather(city) {
+  return state.weatherByCity.get(city)?.get(state.locale) ?? null;
+}
+
+function availableWeather(city) {
+  const localizedWeather = state.weatherByCity.get(city);
+  return localizedWeather?.values().next().value ?? null;
+}
+
 function renderHistory() {
   searchHistory.replaceChildren();
   emptyHistory.classList.toggle("hidden", state.weatherByCity.size > 0);
   historyPanel.classList.toggle("hidden", state.weatherByCity.size === 0);
   mainPage.classList.toggle("has-history", state.weatherByCity.size > 0);
 
-  state.weatherByCity.forEach((weather, city) => {
+  state.weatherByCity.forEach((localizedWeather, city) => {
     const item = document.createElement("li");
     item.className = "searchList";
 
@@ -342,6 +398,7 @@ function renderHistory() {
 
     const currentTemperature = document.createElement("span");
     currentTemperature.className = "current-temp";
+    const weather = localizedWeather.get(state.locale) ?? availableWeather(city);
     const feelsLike = weather.current_condition[0][`FeelsLike${state.unit}`];
     currentTemperature.textContent = `🌡️ ${temperature(feelsLike)}`;
 
@@ -361,7 +418,7 @@ function renderWeather(city, weather, { isSecret = false } = {}) {
 
   state.currentCity = city;
   state.secretActive = isSecret;
-  state.weatherByCity.set(city, weather);
+  cacheWeather(city, weather);
   cityInfo.dataset.state = "success";
   cityInfo.classList.remove("error-state");
   cityInfo.setAttribute("role", "status");
@@ -378,7 +435,7 @@ function renderWeather(city, weather, { isSecret = false } = {}) {
 
 async function fetchWeather(city) {
   const response = await fetch(
-    `https://wttr.in/${encodeURIComponent(city)}?format=j1&lang=${locale}`,
+    `https://wttr.in/${encodeURIComponent(city)}?format=j1&lang=${state.locale}`,
   );
   if (response.status === 404) {
     throw new WeatherError("not-found", `No weather was found for ${city}.`);
@@ -387,6 +444,79 @@ async function fetchWeather(city) {
     throw new WeatherError("service", `Weather request failed with status ${response.status}.`);
   }
   return response.json();
+}
+
+function showWeatherError(error, city) {
+  console.error(error);
+  if (error instanceof WeatherError && error.kind === "not-found") {
+    showMessage(t("notFound", { city }), {
+      isError: true,
+      stateName: "error",
+    });
+  } else if (error instanceof WeatherError && error.kind === "incomplete") {
+    showMessage(t("incomplete", { city }), {
+      isError: true,
+      stateName: "error",
+    });
+  } else {
+    showMessage(t("serviceUnavailable"), {
+      isError: true,
+      stateName: "error",
+    });
+  }
+}
+
+async function loadWeather(city, { isSecret = false, clearInput = false } = {}) {
+  showMessage(t("loadingWeather", { city }), { stateName: "loading" });
+  setLoading(true);
+
+  try {
+    const weather = await fetchWeather(city);
+    renderWeather(city, weather, { isSecret });
+    if (clearInput) cityInput.value = "";
+  } catch (error) {
+    showWeatherError(error, city);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function saveLanguagePreference(preference) {
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, preference);
+  } catch (error) {
+    console.warn("Unable to save the language preference.", error);
+  }
+}
+
+async function applyLanguagePreference(preference) {
+  const validPreference = preference === "auto" || SUPPORTED_LOCALES.includes(preference)
+    ? preference
+    : "auto";
+  const nextLocale = validPreference === "auto" ? browserLocale() : validPreference;
+
+  state.languagePreference = validPreference;
+  saveLanguagePreference(validPreference);
+  languageSelect.value = validPreference;
+
+  if (nextLocale === state.locale) return;
+
+  state.locale = nextLocale;
+  updateFormatters();
+  applyStaticTranslations();
+
+  if (!state.currentCity) {
+    showMessage(t("emptyPrompt"), { stateName: "empty" });
+    return;
+  }
+
+  const weather = cachedWeather(state.currentCity);
+  if (weather) {
+    renderWeather(state.currentCity, weather, { isSecret: state.secretActive });
+    return;
+  }
+
+  await loadWeather(state.currentCity, { isSecret: state.secretActive });
 }
 
 form.addEventListener("submit", async (event) => {
@@ -399,34 +529,7 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  showMessage(t("loadingWeather", { city }), { stateName: "loading" });
-  setLoading(true);
-
-  try {
-    const weather = await fetchWeather(city);
-    renderWeather(city, weather, { isSecret });
-    cityInput.value = "";
-  } catch (error) {
-    console.error(error);
-    if (error instanceof WeatherError && error.kind === "not-found") {
-      showMessage(t("notFound", { city }), {
-        isError: true,
-        stateName: "error",
-      });
-    } else if (error instanceof WeatherError && error.kind === "incomplete") {
-      showMessage(t("incomplete", { city }), {
-        isError: true,
-        stateName: "error",
-      });
-    } else {
-      showMessage(t("serviceUnavailable"), {
-        isError: true,
-        stateName: "error",
-      });
-    }
-  } finally {
-    setLoading(false);
-  }
+  await loadWeather(city, { isSecret, clearInput: true });
 });
 
 cityInfo.addEventListener("click", (event) => {
@@ -434,17 +537,31 @@ cityInfo.addEventListener("click", (event) => {
   if (!button || !state.currentCity) return;
 
   state.unit = state.unit === "F" ? "C" : "F";
-  const weather = state.weatherByCity.get(state.currentCity);
+  const weather = cachedWeather(state.currentCity);
   if (weather) renderWeather(state.currentCity, weather, { isSecret: state.secretActive });
 });
 
-searchHistory.addEventListener("click", (event) => {
+searchHistory.addEventListener("click", async (event) => {
   const link = event.target.closest("a.previousCity[data-city]");
   if (!link) return;
 
   event.preventDefault();
-  const weather = state.weatherByCity.get(link.dataset.city);
-  if (weather) renderWeather(link.dataset.city, weather, { isSecret: false });
+  const weather = cachedWeather(link.dataset.city);
+  if (weather) {
+    renderWeather(link.dataset.city, weather, { isSecret: false });
+  } else {
+    await loadWeather(link.dataset.city, { isSecret: false });
+  }
+});
+
+languageSelect.addEventListener("change", async () => {
+  await applyLanguagePreference(languageSelect.value);
+});
+
+window.addEventListener("languagechange", async () => {
+  if (state.languagePreference === "auto") {
+    await applyLanguagePreference("auto");
+  }
 });
 
 motionToggle.addEventListener("click", () => {

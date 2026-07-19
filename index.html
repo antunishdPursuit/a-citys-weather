@@ -19,6 +19,13 @@
         <form id="weatherCity" aria-label="Weather search">
             <input id="city" type="text" placeholder="Enter a City" aria-label="City" autocomplete="off">
             <button id="weather_button" type="submit">Get Weather</button>
+            <label id="language-label" class="visually-hidden" for="language-select">Language</label>
+            <select id="language-select" aria-labelledby="language-label">
+                <option value="auto">Auto (Browser)</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="vi">Tiếng Việt</option>
+            </select>
             <button id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
         </form>
     </header>
