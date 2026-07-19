@@ -40,6 +40,17 @@ describe("A City's Weather", () => {
     });
   });
 
+  it("keeps the empty page footer within the viewport", () => {
+    cy.viewport(1440, 900);
+
+    cy.window().then((window) => {
+      expect(window.document.documentElement.scrollHeight).to.be.at.most(window.innerHeight);
+      cy.get(".weather-footer").then(($footer) => {
+        expect(Math.abs($footer[0].getBoundingClientRect().bottom - window.innerHeight)).to.be.at.most(1);
+      });
+    });
+  });
+
   it("renders the original panels and weather artwork", () => {
     cy.intercept("GET", "https://wttr.in/Melbourne?format=j1&lang=en", {
       fixture: "melbourne.json",
