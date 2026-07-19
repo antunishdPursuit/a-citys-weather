@@ -423,9 +423,9 @@ body.motion-paused .weather-emoji {
     margin-right: 8px;
 }
 
-#cityInfo p:nth-child(2)::before { content: '📍'; }
-#cityInfo p:nth-child(4)::before { content: '🌎'; }
-#cityInfo p:nth-child(5)::before { content: '🌡️'; }
+#cityInfo .area-line::before { content: '📍'; }
+#cityInfo .country-line::before { content: '🌎'; }
+#cityInfo .current-summary::before { content: '🌡️'; }
 
 #cityInfo .location-line {
     line-height: 1.4;

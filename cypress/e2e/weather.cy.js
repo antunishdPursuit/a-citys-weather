@@ -69,6 +69,7 @@ describe("A City's Weather", () => {
     cy.fixture("melbourne.json").then((weather) => {
       weather.nearest_area[0].areaName[0].value = "Ã\u0090A Kao";
       weather.nearest_area[0].country[0].value = "Vietnam";
+      weather.nearest_area[0].region[0].value = "";
       cy.intercept("GET", "https://wttr.in/Ho%20Chi%20Minh%20City?format=j1", weather).as(
         "encodedAreaWeather",
       );
@@ -78,6 +79,8 @@ describe("A City's Weather", () => {
     cy.wait("@encodedAreaWeather");
 
     cy.get("#cityInfo").should("contain.text", "Đa Kao").and("not.contain.text", "Ã");
+    cy.get("#cityInfo .region-line").should("not.exist");
+    cy.get("#cityInfo .country-line").should("have.text", "Vietnam");
   });
 
   it("activates the protected city state only for the exact secret input", () => {

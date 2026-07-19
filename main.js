@@ -113,16 +113,19 @@ function renderCurrentConditions(city, area, current, isSecret) {
   heading.append(headingText);
 
   const countryName = area.country?.[0]?.value ?? "";
+  const regionName = area.region?.[0]?.value ?? "";
   const areaName = displayAreaName(area.areaName?.[0]?.value ?? "Unknown", countryName);
   const areaParagraph = createLabeledParagraph("Area:", areaName);
-  areaParagraph.className = "location-line";
-  const regionParagraph = createLabeledParagraph(
-    area.region?.[0]?.value ? "Region:" : "",
-    area.region?.[0]?.value ?? "",
-  );
-  regionParagraph.className = "location-line";
+  areaParagraph.className = "location-line area-line";
+  const locationParagraphs = [areaParagraph];
+  if (regionName) {
+    const regionParagraph = createLabeledParagraph("Region:", regionName);
+    regionParagraph.className = "location-line region-line";
+    locationParagraphs.push(regionParagraph);
+  }
   const countryParagraph = createLabeledParagraph("", countryName);
-  countryParagraph.className = "location-line";
+  countryParagraph.className = "location-line country-line";
+  locationParagraphs.push(countryParagraph);
 
   const conditionParagraph = document.createElement("p");
   conditionParagraph.className = "current-summary";
@@ -158,9 +161,7 @@ function renderCurrentConditions(city, area, current, isSecret) {
 
   cityInfo.replaceChildren(
     heading,
-    areaParagraph,
-    regionParagraph,
-    countryParagraph,
+    ...locationParagraphs,
     conditionParagraph,
     unitButton,
   );
