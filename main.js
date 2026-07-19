@@ -14,7 +14,6 @@ const days = document.querySelectorAll(".days");
 const averages = document.querySelectorAll(".avg");
 const maximums = document.querySelectorAll(".max");
 const minimums = document.querySelectorAll(".min");
-const conditions = document.querySelectorAll(".condition");
 const SECRET_INPUT = "ho chi minh city, o";
 
 const state = {
@@ -189,12 +188,6 @@ function renderForecast(weatherDays) {
     minimumLabel.textContent = "Min Temp:";
     minimums[index].append(minimumLabel, document.createTextNode(` ${temperature(weatherValue(day, "mintemp"))}`));
 
-    conditions[index].replaceChildren();
-    if (index > 0) {
-      const condition = document.createElement("strong");
-      condition.textContent = day.hourly?.[4]?.weatherDesc?.[0]?.value ?? "Forecast unavailable";
-      conditions[index].append(document.createTextNode("At 12:00 PM "), condition);
-    }
   });
 }
 

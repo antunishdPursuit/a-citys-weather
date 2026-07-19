@@ -33,6 +33,8 @@ describe("A City's Weather", () => {
     cy.get("#cityInfo").should("contain.text", "Victoria").and("contain.text", "Australia");
     cy.get("#cityInfo").should("contain.text", "47 °F");
     cy.get(".tempertures").should("have.length", 3).and("be.visible");
+    cy.get("#temps").should("not.contain.text", "At 12:00 PM");
+    cy.get(".condition").should("not.exist");
     cy.get("#list").should("contain.text", "Melbourne");
     cy.get(".cloud").should("have.css", "background-image").and("include", "partly-cloudy.png");
     cy.get(".weather-emoji").should("have.length", 5);
