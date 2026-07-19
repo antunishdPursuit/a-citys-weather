@@ -9,7 +9,7 @@ A responsive vanilla JavaScript application for searching current weather condit
 - Switching between Fahrenheit and Celsius without another network request
 - Caching previous searches for the current browser session
 - Explicit loading, empty, success, and error states
-- The original responsive interface, animated weather layers, and weather-code imagery
+- A responsive interface with condition-matched backgrounds, animated weather layers, and local weather-code imagery
 - Cypress end-to-end tests with deterministic API fixtures
 
 ## Live application
@@ -43,21 +43,21 @@ npm test
 
 ## Architecture
 
-- `index.html` preserves the original page structure and adds non-visual accessibility metadata.
+- `index.html` defines the semantic search, weather, history, and footer structure.
 - `main.js` owns application state, weather requests, rendering, unit conversion, and the session search history.
-- `style.css` preserves the original responsive visual system and animated weather layers.
+- `style.css` defines the responsive design system and animated weather layers.
 - `icons.json` maps weather codes to the original local background artwork.
-- `cypress/e2e/weather.cy.js` covers the main user journey, original panels and artwork, unit switching, cached history, request failure, motion controls, and desktop/mobile layout geometry.
+- `cypress/e2e/weather.cy.js` covers search states, condition themes, unit switching, cached history, request failures, motion controls, and desktop/mobile layout geometry.
 - `.github/workflows/quality.yml` runs install, build, and end-to-end verification on pushes and pull requests.
 
 ## Design decisions
 
 - The project remains framework-free. A framework rewrite would hide the original DOM and API-learning evidence without solving a product need.
-- The original interface is an intentional part of the project. Maintenance may improve safety, correctness, dependencies, tests, and documentation, but it does not redesign the UI.
+- The interface retains the project's original sky-blue character while using a documented palette, clearer hierarchy, and responsive content flow.
 - Search history is intentionally session-only; the app does not collect accounts or personal data.
 - Weather responses are cached by normalized city name so toggling units and reopening a previous result do not make unnecessary API calls.
 - User-provided city names are rendered with `textContent`, not injected as HTML.
-- The animated sky uses the six original artwork layers plus condition-specific emoji accents. Users can pause the motion, and the app honors the system reduced-motion preference.
+- The animated sky uses six matching artwork layers and one repeated emoji for the returned condition. Users can pause the motion, and the app honors the system reduced-motion preference.
 
 ## Known limitations
 
@@ -74,11 +74,11 @@ The 2026 update:
 - removed tests for UI and features that no longer existed;
 - fixed malformed degree symbols and emoji encoding;
 - removed duplicated rendering paths and unsafe user-input HTML;
-- preserved the original layout, animated weather artwork, Easter egg, and footer while adding non-visual accessibility metadata;
-- added tests that protect the original major panels and weather-art layers from accidental redesign;
-- repaired the phone layout and fixed-footer overlap while preserving the desktop composition;
-- improved text contrast and current-condition hierarchy within the original palette;
-- enriched the weather background with faster layered artwork and condition-specific emojis;
+- retained the original animated weather artwork and footer while improving semantic structure and accessibility;
+- added tests that protect weather states, artwork coherence, and responsive layout geometry;
+- repaired the phone layout and removed fixed-footer overlap across viewports;
+- improved first-use guidance, action hierarchy, text contrast, and current-condition hierarchy within the original palette;
+- synchronized the background, artwork, and emoji layers with each returned condition;
 - added pause/resume and reduced-motion behavior;
 - added a reproducible production build and GitHub Actions quality workflow.
 
