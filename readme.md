@@ -14,7 +14,7 @@ A responsive vanilla JavaScript application for searching current weather condit
 
 ## Live application
 
-[Open A City's Weather](https://antunishdpursuit.github.io/project-weather-app/)
+[Open A City's Weather](https://antunishdpursuit.github.io/a-citys-weather/)
 
 The deployment uses GitHub Pages. If the page still shows an older version immediately after a release, allow the Pages workflow to finish and refresh.
 
