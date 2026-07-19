@@ -122,6 +122,16 @@ header {
     box-shadow: 0 4px 8px rgba(0, 150, 255, 0.4);
 }
 
+#city:focus-visible,
+.degreeCToF:focus-visible,
+#weather_button:focus-visible,
+#motion-toggle:focus-visible,
+.previousCity:focus-visible,
+.footer-link:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+}
+
 /* Header Button styling */
 .degreeCToF, #weather_button, #motion-toggle {
     position: relative;
@@ -147,11 +157,15 @@ header {
     box-shadow: 0 12px 20px rgba(0, 150, 255, 0.4);
 }
 
+.degreeCToF,
 #motion-toggle {
     color: var(--color-primary);
     background: linear-gradient(to bottom, var(--color-text-inverse), var(--color-surface-strong));
+    border: 1px solid var(--color-primary);
+    box-shadow: var(--shadow-sm);
 }
 
+.degreeCToF:hover,
 #motion-toggle:hover {
     color: var(--color-text-inverse);
 }
@@ -180,15 +194,6 @@ header {
 #weather_button:hover::before {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
-}
-
-#weather_button::after {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    opacity: 0.5;
-    content: '☁️';
-    font-size: 1.5em;
 }
 
  /* ------------------------ Cloud styling ------------------------ */
