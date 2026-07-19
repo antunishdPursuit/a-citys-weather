@@ -212,24 +212,32 @@ function createHeart() {
   return svg;
 }
 
-function weatherEmojis(description) {
+function weatherTheme(description) {
   const condition = description.toLowerCase();
-  if (condition.includes("thunder")) return ["⛈️", "⚡", "🌧️", "⚡", "☁️"];
-  if (condition.includes("snow") || condition.includes("blizzard")) return ["❄️", "🌨️", "❄️", "☁️", "❄️"];
+  if (condition.includes("thunder")) return { name: "storm", symbol: "⛈️" };
+  if (condition.includes("snow") || condition.includes("blizzard")) {
+    return { name: "snow", symbol: "❄️" };
+  }
   if (condition.includes("ice") || condition.includes("freez") || condition.includes("sleet")) {
-    return ["🧊", "🌨️", "❄️", "🧊", "☁️"];
+    return { name: "ice", symbol: "🧊" };
   }
   if (condition.includes("rain") || condition.includes("drizzle") || condition.includes("shower")) {
-    return ["🌧️", "💧", "☁️", "💧", "🌦️"];
+    return { name: "rain", symbol: "🌧️" };
   }
-  if (condition.includes("fog") || condition.includes("mist")) return ["🌫️", "☁️", "🌫️", "☁️", "🌫️"];
-  if (condition.includes("cloud") || condition.includes("overcast")) return ["🌤️", "☁️", "🌥️", "☁️", "🌤️"];
-  return ["☀️", "✨", "🌤️", "✨", "☀️"];
+  if (condition.includes("fog") || condition.includes("mist")) {
+    return { name: "fog", symbol: "🌫️" };
+  }
+  if (condition.includes("cloud") || condition.includes("overcast")) {
+    return { name: "cloud", symbol: "☁️" };
+  }
+  return { name: "clear", symbol: "☀️" };
 }
 
 function renderWeatherEmojis(description) {
+  const theme = weatherTheme(description);
+  document.body.dataset.weather = theme.name;
   cloudContainer.querySelectorAll(".weather-emoji").forEach((emoji) => emoji.remove());
-  weatherEmojis(description).forEach((symbol, index) => {
+  Array.from({ length: 5 }, () => theme.symbol).forEach((symbol, index) => {
     const emoji = document.createElement("span");
     emoji.className = "weather-emoji";
     emoji.setAttribute("aria-hidden", "true");
@@ -248,10 +256,10 @@ async function updateWeatherBackground(weatherCode, city, description) {
       state.weatherIcons = await response.json();
     }
 
-    clouds.forEach((cloud, index) => {
+    clouds.forEach((cloud) => {
       cloud.querySelectorAll(".surprise-heart").forEach((heart) => heart.remove());
       const conditionArtwork = state.weatherIcons[weatherCode] ?? "url('assets/cloud.webp')";
-      cloud.style.backgroundImage = index % 3 === 2 ? "url('assets/cloud.webp')" : conditionArtwork;
+      cloud.style.backgroundImage = conditionArtwork;
       if (city === "Ho Chi Minh City") cloud.append(createHeart());
     });
   } catch (error) {
